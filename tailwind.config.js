@@ -48,5 +48,8 @@ module.exports = {
     },
   },
   darkMode: 'class', //mdeia : 자동(시스템 설정값을 불러옴), class : 수동
-  plugins: [],
+  plugins: [require('tailwind-scrollbar'), require('tailwind-scrollbar-hide')],
+  variants: {
+    scrollbar: ['rounded', 'dark'],
+  },
 };
