@@ -1,12 +1,13 @@
 import { cls } from '@libs/util';
 import { useSelector } from '@store';
 import { commonActions } from '@store/common';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import OutsideClickHandler from 'react-outside-click-handler';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import useScrollPosition from '@libs/client/useScrollPosition';
+import useScrollPosition from '@hooks/useScrollPosition';
+import useDarkMode from '@hooks/useDarkMode';
 
 interface HeaderProps {
   isAnim: boolean;
@@ -17,8 +18,8 @@ function Header({ isAnim }: HeaderProps) {
   const router = useRouter();
   const searchMode = useSelector(state => state.commmon.searchMode);
   const isScrollUp = useSelector(state => state.commmon.scrollUp);
-
   const scrollPosition = useScrollPosition(500);
+  const [darkMode, setDarkMode] = useDarkMode();
 
   return (
     <header
@@ -44,7 +45,7 @@ function Header({ isAnim }: HeaderProps) {
           className="toggle-btn bg-l-darkTwo dark:bg-d-darkTwo absolute top-4 right-24 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-[50%] border-0 text-xl text-text-dark  outline-none hover:bg-l-hoverColor dark:text-text-white dark:hover:bg-d-mainColor"
           onClick={() => {
             if (isAnim) return;
-            dispatch(commonActions.toggle_darkMode());
+            setDarkMode(!darkMode);
           }}
         >
           <svg

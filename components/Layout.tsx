@@ -1,14 +1,15 @@
-import { useSelector } from '@store';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Header from '@components/Header';
 import { cls } from '@libs/util';
 import ReactScrollWheelHandler from 'react-scroll-wheel-handler';
 import { useDispatch } from 'react-redux';
 import { commonActions } from '@store/common';
+import useDarkMode from '@hooks/useDarkMode';
 
 interface LayoutProps {
   children: React.ReactNode[];
 }
+
 const hiddenStyle = {
   'z-index': '-20',
   dislay: 'hidden',
@@ -22,31 +23,44 @@ const visibleStyle = {
 function Layout({ children }: LayoutProps) {
   const dispatch = useDispatch();
   const scrollState = useRef('down');
+  const [firstLoaded, setFirstLoaded] = useState(false);
   const [isAnim, setIsAnim] = useState(false);
   const initWrap = useRef<HTMLDivElement>(null);
   const darkWrap = useRef<HTMLDivElement>(null);
-  const lightkWrap = useRef<HTMLDivElement>(null);
-  const darkMode = useSelector(state => state.commmon.darkMode);
+  const lightWrap = useRef<HTMLDivElement>(null);
+  const [darkMode] = useDarkMode();
+
+  const changeLayout = useCallback(() => {
+    const drakModeContainer = darkWrap.current;
+    const lightModeContainer = lightWrap.current;
+
+    if (isAnim || !firstLoaded) {
+      setFirstLoaded(true);
+      return;
+    }
+
+    if (
+      !(drakModeContainer instanceof HTMLDivElement) ||
+      !(lightModeContainer instanceof HTMLDivElement)
+    )
+      return;
+
+    if (darkMode) {
+      drakModeContainer.classList.add('animate-darkModeChange');
+      lightModeContainer.style.zIndex = hiddenStyle['z-index'];
+      drakModeContainer.style.zIndex = visibleStyle['z-index'];
+      drakModeContainer.style.display = visibleStyle.display;
+    } else {
+      lightModeContainer.classList.add('animate-darkModeChange');
+      drakModeContainer.style.zIndex = hiddenStyle['z-index'];
+      lightModeContainer.style.zIndex = visibleStyle['z-index'];
+      lightModeContainer.style.display = visibleStyle.display;
+    }
+  }, [darkMode, isAnim, firstLoaded]);
 
   useEffect(() => {
-    if (isAnim) return;
-    if (
-      darkWrap.current instanceof HTMLDivElement &&
-      lightkWrap.current instanceof HTMLElement
-    ) {
-      if (darkMode) {
-        darkWrap.current.classList.add('animate-darkModeChange');
-        lightkWrap.current.style.zIndex = hiddenStyle['z-index'];
-        darkWrap.current.style.zIndex = visibleStyle['z-index'];
-        darkWrap.current.style.display = visibleStyle.display;
-      } else {
-        lightkWrap.current.classList.add('animate-darkModeChange');
-        darkWrap.current.style.zIndex = hiddenStyle['z-index'];
-        lightkWrap.current.style.zIndex = visibleStyle['z-index'];
-        lightkWrap.current.style.display = visibleStyle.display;
-      }
-    }
-  }, [darkMode, isAnim]);
+    changeLayout();
+  }, [changeLayout]);
 
   return (
     <ReactScrollWheelHandler
@@ -72,7 +86,7 @@ function Layout({ children }: LayoutProps) {
         />
         <div
           className="absolute -z-20 min-h-full w-full bg-l-backgroundColor"
-          ref={lightkWrap}
+          ref={lightWrap}
           onAnimationStart={() => {
             setIsAnim(true);
           }}
@@ -93,8 +107,8 @@ function Layout({ children }: LayoutProps) {
             setIsAnim(true);
           }}
           onAnimationEnd={() => {
-            if (lightkWrap.current instanceof HTMLDivElement) {
-              lightkWrap.current.style.display = 'none';
+            if (lightWrap.current instanceof HTMLDivElement) {
+              lightWrap.current.style.display = 'none';
               if (initWrap.current instanceof HTMLDivElement) {
                 initWrap.current.remove();
               }

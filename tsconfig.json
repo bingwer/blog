@@ -18,6 +18,7 @@
     "paths": {
       "@libs/*": ["libs/*"],
       "@components/*": ["components/*"],
+      "@hooks/*": ["hooks/*"],
       "@image/*": ["public/image/*"],
       "@store": ["store/index"],
       "@store/*": ["store/*"]
