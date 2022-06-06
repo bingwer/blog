@@ -1,10 +1,10 @@
-import ListLayout from '@components/ListLayout';
+import SubLayout from '@components/SubLayout';
 import Three from '@components/Three';
 import Link from 'next/link';
 
 function Home() {
   return (
-    <ListLayout>
+    <SubLayout>
       <div className="showcase-area">
         <div className="justiy-center z-10 my-0 mx-auto grid w-full max-w-4xl grid-cols-1 items-center gap-8 px-12 py-10 lg:grid-cols-2 lg:gap-0 lg:py-0">
           <div className="left">
@@ -29,7 +29,7 @@ function Home() {
           </div>
         </div>
       </div>
-    </ListLayout>
+    </SubLayout>
   );
 }
 
