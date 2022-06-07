@@ -1,5 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+export interface ResponseType {
+  ok: boolean;
+}
+
 type methods = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 interface withHandlerProps {

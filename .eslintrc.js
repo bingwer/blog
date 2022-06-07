@@ -38,6 +38,7 @@ module.exports = {
         tsx: 'never',
       },
     ],
+    'no-console': 'off', // 콘솔 사용 허용
     'spaced-comment': 'off', // 주석을 뒤에 쓸 수 있다.
     'no-unused-vars': 'off', // 사용 안한 변수 중복 제거
     'global-require': 'off', // 함수 내에서 require 사용 가능
@@ -49,6 +50,7 @@ module.exports = {
     ],
     'jsx-a11y/anchor-is-valid': 'off', // next js 에서는 a태그에 href 없이 사용
     'react/react-in-jsx-scope': 'off',
+    'react/jsx-props-no-spreading': 'off', //spreding 허용
   },
   settings: {
     'import/resolver': {
