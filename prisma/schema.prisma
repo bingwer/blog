@@ -13,7 +13,7 @@ datasource db {
 }
 
 model User {
-  id       Int    @unique @default(autoincrement())
+  id       Int    @unique @default(autoincrement()) @db.UnsignedTinyInt
   userId   String @unique
   password String
 }
