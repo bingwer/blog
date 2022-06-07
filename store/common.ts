@@ -4,7 +4,6 @@ import { createSlice } from '@reduxjs/toolkit';
 
 interface CommonReduxState {
   darkMode: boolean;
-  searchMode: boolean;
   scrollUp: boolean;
 }
 
@@ -12,7 +11,6 @@ const name = 'common';
 
 const initialState: CommonReduxState = {
   darkMode: false,
-  searchMode: false,
   scrollUp: false,
 };
 
@@ -25,15 +23,6 @@ const reducers = {
   },
   toggle_darkMode(state: CommonReduxState) {
     state.darkMode = !state.darkMode;
-  },
-  set_searchMode(state: CommonReduxState) {
-    state.searchMode = true;
-  },
-  set_nonSearchMode(state: CommonReduxState) {
-    state.searchMode = false;
-  },
-  toggle_searchMode(state: CommonReduxState) {
-    state.searchMode = !state.searchMode;
   },
   set_scrollUp(state: CommonReduxState) {
     state.scrollUp = true;

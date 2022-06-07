@@ -28,6 +28,16 @@ module.exports = {
         singleQuote: true,
       },
     ],
+    'import/extensions': [
+      'error',
+      'ignorePackages',
+      {
+        js: 'never',
+        jsx: 'never',
+        ts: 'never',
+        tsx: 'never',
+      },
+    ],
     'spaced-comment': 'off', // 주석을 뒤에 쓸 수 있다.
     'no-unused-vars': 'off', // 사용 안한 변수 중복 제거
     'global-require': 'off', // 함수 내에서 require 사용 가능

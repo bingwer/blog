@@ -1,11 +1,8 @@
-import { cls } from '@libs/util';
-import { useSelector } from '@store';
-import { commonActions } from '@store/common';
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import OutsideClickHandler from 'react-outside-click-handler';
+import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { cls } from '@libs/util';
+import { useSelector } from '@store';
 import useScrollPosition from '@hooks/useScrollPosition';
 import useDarkMode from '@hooks/useDarkMode';
 
@@ -14,9 +11,7 @@ interface HeaderProps {
 }
 
 function Header({ isAnim }: HeaderProps) {
-  const dispatch = useDispatch();
   const router = useRouter();
-  const searchMode = useSelector(state => state.commmon.searchMode);
   const isScrollUp = useSelector(state => state.commmon.scrollUp);
   const scrollPosition = useScrollPosition(500);
   const [darkMode, setDarkMode] = useDarkMode();
@@ -73,12 +68,12 @@ function Header({ isAnim }: HeaderProps) {
         <div
           className={cls(
             'searchWrap z-20 mt-1 flex justify-end pr-2  md:pr-0',
-            searchMode
-              ? 'w-56 rounded-2xl border-2 border-l-mainColor bg-l-backgroundColor dark:border-d-mainColor dark:bg-d-backgroundColor md:w-72'
-              : 'w-14',
+            //searchMode
+            //  ? 'w-56 rounded-2xl border-2 border-l-mainColor bg-l-backgroundColor dark:border-d-mainColor dark:bg-d-backgroundColor md:w-72'
+            'w-14',
           )}
         >
-          {searchMode && (
+          {/*       {searchMode && (
             <OutsideClickHandler
               display="inline"
               onOutsideClick={() => {
@@ -95,12 +90,12 @@ function Header({ isAnim }: HeaderProps) {
                 placeholder="포스트 검색"
               />
             </OutsideClickHandler>
-          )}
+          )} */}
           <button
             className="hamberger m-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-0 text-text-dark focus:outline-none dark:text-text-white"
             type="button"
             onClick={() => {
-              dispatch(commonActions.toggle_searchMode());
+              router.push('/search');
             }}
           >
             <svg

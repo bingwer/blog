@@ -3,21 +3,14 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import { cls } from '@libs/util';
 
 interface ListLayoutProps {
   children: React.ReactNode[] | React.ReactNode;
 }
 
-function ListLayout({ children }: ListLayoutProps) {
+function SubLayout({ children }: ListLayoutProps) {
   const { pathname } = useRouter();
-  const [path, setPath] = useState('');
-
-  useEffect(() => {
-    const basepath = pathname.split('/')[1];
-    setPath(basepath);
-  }, [pathname]);
 
   return (
     <section className="z-10 mx-auto w-full max-w-4xl px-8 py-10 text-text-dark dark:text-text-white">
@@ -58,7 +51,7 @@ function ListLayout({ children }: ListLayoutProps) {
             <li
               className={cls(
                 'h-full w-full border-l-mainColor py-2 text-center dark:border-d-mainColor md:w-32 md:py-3',
-                path === ''
+                pathname === '/'
                   ? 'border-b-2 text-l-mainColor dark:text-d-mainColor'
                   : 'border-0',
               )}
@@ -70,19 +63,19 @@ function ListLayout({ children }: ListLayoutProps) {
             <li
               className={cls(
                 'h-full w-full border-l-mainColor py-2 text-center dark:border-d-mainColor md:w-32 md:py-3',
-                path === 'series'
+                pathname.includes('series')
                   ? 'border-b-2 text-l-mainColor dark:text-d-mainColor'
                   : 'border-0',
               )}
             >
               <Link href="/series">
-                <a>연재</a>
+                <a>모음집</a>
               </Link>
             </li>
             <li
               className={cls(
                 'h-full w-full border-l-mainColor py-2 text-center dark:border-d-mainColor md:w-32 md:py-3',
-                path === 'about'
+                pathname.includes('about')
                   ? 'border-b-2 text-l-mainColor dark:text-d-mainColor'
                   : 'border-0',
               )}
@@ -99,4 +92,4 @@ function ListLayout({ children }: ListLayoutProps) {
   );
 }
 
-export default ListLayout;
+export default SubLayout;
