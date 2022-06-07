@@ -15,7 +15,7 @@ function Login() {
   const [login, { data, loading, error: loginError }] =
     useMutation<ResponseType>('/api/auth/login');
 
-  useUser();
+  const { mutate } = useUser();
 
   const {
     register,
@@ -28,8 +28,11 @@ function Login() {
   };
 
   useEffect(() => {
-    if (data && data.ok) router.replace('/');
-  }, [data, router]);
+    if (data && data.ok) {
+      mutate();
+      router.replace('/');
+    }
+  }, [data, router, mutate]);
 
   return (
     <main className="mx-auto flex h-full w-full max-w-xl items-center justify-center px-8 text-text-dark dark:text-text-white">
