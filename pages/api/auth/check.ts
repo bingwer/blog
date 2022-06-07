@@ -24,7 +24,9 @@ async function handler(
     });
 
     if (!user) {
-      res.status(401).json({ ok: false });
+      res.json({
+        ok: false,
+      });
       return;
     }
 
