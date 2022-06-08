@@ -13,6 +13,7 @@ const useScrollPosition = (throttleTime: number) => {
         }, throttleTime);
       }
     };
+    updatePosition();
     window.addEventListener('scroll', updatePosition);
     return () => window.removeEventListener('scroll', updatePosition);
   }, [throttleTime]);
