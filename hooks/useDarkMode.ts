@@ -32,11 +32,7 @@ export default function useDarkMode(): useDarkModeProps {
         setDarkMode(detectedDarkMode);
       });
     } catch (err) {
-      try {
-        //safari test 필요
-      } catch (err2) {
-        console.error(err2);
-      }
+      console.error(err);
     }
   }, [setDarkMode]);
 
