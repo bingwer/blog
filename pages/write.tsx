@@ -21,15 +21,18 @@ const ToastEditor = dynamic<ToastEditorProps>(
 );
 
 const EditorWrap = forwardRef<Editor, ToastEditorProps>((props, ref) => {
-  return <ToastEditor {...props} ref={ref} />;
+  return (
+    <ToastEditor {...props} editorRef={ref as React.MutableRefObject<Editor>} />
+  );
 });
 
 EditorWrap.displayName = 'EditorWarp';
 
 function Write() {
   useUser();
+  const editorRef = useRef<Editor | null>(null);
   const [darkMode] = useDarkMode();
-  const width = useWindowWidth(500);
+  const windowWidth = useWindowWidth(500);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [tags, setTags] = useState<string[]>([]);
 
@@ -91,11 +94,13 @@ function Write() {
             />
           </div>
           <EditorWrap
-            previewStyle={width > 720 ? 'vertical' : 'tab'}
+            previewStyle={windowWidth > 720 ? 'vertical' : 'tab'}
             initialValue=" "
             language="ko-kr"
             height="700px"
             theme={darkMode ? 'dark' : 'light'}
+            autofocus={false}
+            ref={editorRef}
           />
           <div className="flex h-16 w-full items-center justify-between">
             <button type="button" onClick={() => router.back()}>
