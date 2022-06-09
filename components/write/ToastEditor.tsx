@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
+import path from 'path';
 
 import { Editor, EditorProps } from '@toast-ui/react-editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
@@ -15,16 +16,62 @@ import 'tui-color-picker/dist/tui-color-picker.css';
 import '@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css';
 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import useDarkMode from '@hooks/useDarkMode';
+import { ResponseType } from '@libs/server/withHandler';
+import axiosClient from '@libs/client/axiosClient';
 
 export interface ToastEditorProps extends EditorProps {
-  ref: React.ForwardedRef<Editor>;
+  // eslint-disable-next-line react/require-default-props
+  editorRef?: React.MutableRefObject<Editor>;
+}
+
+interface uploadImageResponseType extends ResponseType {
+  data: { filePath: string };
 }
 
 function ToastEditor(props: ToastEditorProps) {
+  const { editorRef } = props;
+
+  const uploadImage = useCallback(
+    async (file: File, callback: (url: string, flag: string) => void) => {
+      const uuidFile = new File(
+        [file],
+        `asdadsdadsadsadsadasdsadsad${path.extname(file.name)}`,
+      );
+
+      const body = new FormData();
+      body.append('file', uuidFile);
+      try {
+        const {
+          data: { filePath },
+        }: uploadImageResponseType = await axiosClient.post(
+          '/api/write/upload',
+          body,
+        );
+
+        console.log(filePath);
+
+        callback(filePath, 'ImageURL');
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!editorRef || !(editorRef && editorRef.current instanceof Editor))
+      return;
+    const editor = editorRef.current.getInstance();
+
+    editor.removeHook('addImageBlobHook');
+    editor.addHook('addImageBlobHook', async (file, callback) => {
+      uploadImage(file, callback);
+    });
+  }, [editorRef, uploadImage]);
   return (
     <Editor
       {...props}
+      ref={editorRef}
       language="ko-KR"
       plugins={[colorSyntax, [codeSyntaxHighlight, { highlighter: Prism }]]}
     />
