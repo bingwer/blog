@@ -3,13 +3,15 @@ import withHandler, { ResponseType } from '@libs/server/withHandler';
 import withSession from '@libs/server/withSession';
 import { prisma } from '@libs/server/prismaClient';
 
+const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
+
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseType>,
 ) {
   const { title, content, thumbnailPath, uuid, isTemp, tags } = req.body;
 
-  if (!title || !content) {
+  if (!title || !content || content === toastEditorEmptyString) {
     res.status(500).end();
     return;
   }

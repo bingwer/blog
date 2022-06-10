@@ -23,6 +23,7 @@ export interface ToastEditorProps extends EditorProps {
   // eslint-disable-next-line react/require-default-props
   editorRef?: React.MutableRefObject<Editor>;
   uuid: string;
+  thumbnailPathRef: React.MutableRefObject<undefined | string>;
 }
 
 interface uploadImageResponseType extends ResponseType {
@@ -30,7 +31,7 @@ interface uploadImageResponseType extends ResponseType {
 }
 
 function ToastEditor(props: ToastEditorProps) {
-  const { editorRef, uuid } = props;
+  const { editorRef, uuid, thumbnailPathRef } = props;
 
   const uploadImage = useCallback(
     async (file: File, callback: (url: string, flag: string) => void) => {
@@ -46,12 +47,15 @@ function ToastEditor(props: ToastEditorProps) {
           body,
         );
 
+        if (thumbnailPathRef && !thumbnailPathRef.current)
+          thumbnailPathRef.current = filePath;
+
         callback(filePath, 'ImageURL');
       } catch (e) {
         console.error(e);
       }
     },
-    [uuid],
+    [uuid, thumbnailPathRef],
   );
 
   useEffect(() => {

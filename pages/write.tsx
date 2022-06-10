@@ -2,23 +2,35 @@ import { ToastEditorProps } from '@components/write/ToastEditor';
 import WriteTag from '@components/write/WriteTag';
 import useDarkMode from '@hooks/useDarkMode';
 import useUser from '@hooks/useUser';
-import { cls } from '@libs/util';
+import { cls, makeAlert, makeConfirmAlert } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import useWindowWidth from '@hooks/useWindowWidth';
 import { v4 as uuidV4 } from 'uuid';
 import useMutation from '@hooks/useMutation';
 import axiosClient from '@libs/client/axiosClient';
 import { AxiosRequestConfig } from 'axios';
+import { useForm } from 'react-hook-form';
+import { ResponseType } from '@libs/server/withHandler';
+
+interface writeFormType {
+  title: string;
+}
 
 const PortalWrap = dynamic(() => import('@libs/client/PortalWrap'), {
   ssr: false,
 });
 
 const ToastEditor = dynamic<ToastEditorProps>(
-  () => import('@components/write/ToastEditor'),
+  () => import('@components/write/ToastEditor').then(m => m.default),
   {
     ssr: false,
   },
@@ -35,12 +47,16 @@ EditorWrap.displayName = 'EditorWarp';
 function Write() {
   useUser();
   const editorRef = useRef<Editor | null>(null);
-  const needCleanUp = useRef(false);
-  const [darkMode] = useDarkMode();
-  const windowWidth = useWindowWidth(500);
   const tagInputRef = useRef<HTMLInputElement>(null);
+  const needCleanUp = useRef(false);
+  const thumbnailPath = useRef<undefined | string>(undefined);
   const [tags, setTags] = useState<string[]>([]);
   const [uuid] = useState(uuidV4());
+  const [darkMode] = useDarkMode();
+  const windowWidth = useWindowWidth(500);
+  const { register, handleSubmit } = useForm<writeFormType>();
+  const [uploadPost, { data, loading, error }] =
+    useMutation<ResponseType>('/api/write');
 
   const router = useRouter();
 
@@ -70,6 +86,50 @@ function Write() {
     setTags(prev => prev.slice(0, -1));
   };
 
+  const savePost = async (formData: writeFormType) => {
+    if (loading) return;
+    const editor = editorRef.current;
+    const { title } = formData;
+    if (!editor) return;
+
+    const conf = await makeConfirmAlert(
+      {
+        content: '포스트를 등록하시겠어요?',
+      },
+      darkMode,
+    );
+
+    if (!conf) return;
+
+    const content = editor.getInstance().getHTML();
+    const body = {
+      title,
+      content,
+      uuid,
+      ...(thumbnailPath.current && { thumbnailPath: thumbnailPath.current }),
+      isTemp: false,
+      tags,
+    };
+    uploadPost(body);
+  };
+
+  const onSuccess = useCallback(async () => {
+    await makeAlert(
+      { content: '포스트가 등록되었습니다.' },
+      'success',
+      darkMode,
+    );
+    router.replace('/');
+  }, [darkMode, router]);
+
+  const onError = useCallback(async () => {
+    await makeAlert(
+      { content: '포스트 등록에 실패했습니다.' },
+      'error',
+      darkMode,
+    );
+  }, [darkMode]);
+
   useEffect(() => {
     const deleteTempImage = () => {
       const body: AxiosRequestConfig = {
@@ -89,6 +149,19 @@ function Write() {
     };
   }, [uuid]);
 
+  useEffect(() => {
+    if (data && data.ok) {
+      needCleanUp.current = false;
+      onSuccess();
+    }
+  }, [data, onSuccess]);
+
+  useEffect(() => {
+    if (error) {
+      onError();
+    }
+  }, [error, onError]);
+
   return (
     <PortalWrap wrapperId="writePortal">
       <div
@@ -97,12 +170,18 @@ function Write() {
           darkMode ? 'dark' : 'light',
         )}
       >
-        <form className="h-full w-full bg-l-backgroundColor px-12 py-5 text-text-dark dark:bg-d-backgroundColor dark:text-text-white">
+        <form
+          className="h-full w-full bg-l-backgroundColor px-12 py-5 text-text-dark dark:bg-d-backgroundColor dark:text-text-white"
+          onSubmit={handleSubmit(savePost)}
+        >
           <div className="mb-4 w-full border-b-2 border-l-mainColor dark:border-d-mainColor">
             <input
               placeholder="제목을 입력하세요"
               type="text"
               className="h-20 w-full bg-inherit px-3 text-3xl focus:outline-none"
+              {...register('title', {
+                required: true,
+              })}
             />
           </div>
           <div className="mb-3 flex flex-wrap  ">
@@ -111,7 +190,9 @@ function Write() {
                 // eslint-disable-next-line react/no-array-index-key
                 key={`${tag}_${index}`}
                 title={tag}
-                onClick={() => {}}
+                onClick={() => {
+                  setTags(prev => prev.filter(tagName => tagName !== tag));
+                }}
               />
             ))}
             <input
@@ -132,6 +213,7 @@ function Write() {
             autofocus={false}
             ref={editorRef}
             uuid={uuid}
+            thumbnailPathRef={thumbnailPath}
           />
           <div className="flex h-16 w-full items-center justify-between">
             <button type="button" onClick={() => router.back()}>
@@ -156,10 +238,10 @@ function Write() {
             <div className="space-x-4">
               <button type="button">임시저장</button>
               <button
-                type="button"
+                type="submit"
                 className="rounded-lg bg-l-mainColor py-2 px-3 dark:bg-d-mainColor"
               >
-                저장하기
+                {loading ? '저장중...' : '저장하기'}
               </button>
             </div>
           </div>

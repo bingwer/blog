@@ -36,7 +36,10 @@
     "react-scroll-wheel-handler": "^2.1.0",
     "redux": "^4.2.0",
     "redux-logger": "^3.0.6",
+    "sweetalert2": "^11.4.17",
     "swr": "^1.3.0",
+    "tailwind-scrollbar": "^1.3.1",
+    "tailwind-scrollbar-hide": "^1.1.7",
     "three": "^0.140.2",
     "tui-color-picker": "^2.2.7",
     "uuid": "^8.3.2"
@@ -70,8 +73,6 @@
     "prettier": "^2.6.2",
     "prettier-plugin-prisma": "^3.14.0",
     "prettier-plugin-tailwindcss": "^0.1.10",
-    "tailwind-scrollbar": "github:adoxography/tailwind-scrollbar#pull/36/head",
-    "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss": "^3.0.24",
     "typescript": "4.6.4"
   }
