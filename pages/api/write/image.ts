@@ -67,6 +67,29 @@ handler.post(
   },
 );
 
+handler.delete((req: NextApiRequest, res: NextApiResponse) => {
+  const {
+    query: { uuid },
+  } = req;
+
+  if (!uuid) {
+    res.status(500).end();
+    return;
+  }
+
+  try {
+    const folderPath = `public/posts/${uuid}`;
+    if (!fs.existsSync(folderPath)) {
+      res.status(200).end();
+      return;
+    }
+    fs.rmdirSync(folderPath, { recursive: true });
+    res.status(200).end();
+  } catch (e) {
+    console.error(e);
+    res.status(500).end();
+  }
+});
 export default withSession(
-  withHandler({ methods: ['POST'], handler, isPrivate: true }),
+  withHandler({ methods: ['POST', 'DELETE'], handler, isPrivate: true }),
 );

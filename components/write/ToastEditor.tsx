@@ -22,6 +22,7 @@ import axiosClient from '@libs/client/axiosClient';
 export interface ToastEditorProps extends EditorProps {
   // eslint-disable-next-line react/require-default-props
   editorRef?: React.MutableRefObject<Editor>;
+  uuid: string;
 }
 
 interface uploadImageResponseType extends ResponseType {
@@ -29,14 +30,11 @@ interface uploadImageResponseType extends ResponseType {
 }
 
 function ToastEditor(props: ToastEditorProps) {
-  const { editorRef } = props;
+  const { editorRef, uuid } = props;
 
   const uploadImage = useCallback(
     async (file: File, callback: (url: string, flag: string) => void) => {
-      const uuidFile = new File(
-        [file],
-        `asdadsdadsadsadsadasdsadsad${path.extname(file.name)}`,
-      );
+      const uuidFile = new File([file], `${uuid}${path.extname(file.name)}`);
 
       const body = new FormData();
       body.append('file', uuidFile);
@@ -44,18 +42,16 @@ function ToastEditor(props: ToastEditorProps) {
         const {
           data: { filePath },
         }: uploadImageResponseType = await axiosClient.post(
-          '/api/write/upload',
+          '/api/write/image',
           body,
         );
-
-        console.log(filePath);
 
         callback(filePath, 'ImageURL');
       } catch (e) {
         console.error(e);
       }
     },
-    [],
+    [uuid],
   );
 
   useEffect(() => {
