@@ -6,8 +6,12 @@ import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import React, { forwardRef, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import useWindowWidth from '@hooks/useWindowWidth';
+import { v4 as uuidV4 } from 'uuid';
+import useMutation from '@hooks/useMutation';
+import axiosClient from '@libs/client/axiosClient';
+import { AxiosRequestConfig } from 'axios';
 
 const PortalWrap = dynamic(() => import('@libs/client/PortalWrap'), {
   ssr: false,
@@ -31,21 +35,23 @@ EditorWrap.displayName = 'EditorWarp';
 function Write() {
   useUser();
   const editorRef = useRef<Editor | null>(null);
+  const needCleanUp = useRef(false);
   const [darkMode] = useDarkMode();
   const windowWidth = useWindowWidth(500);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [tags, setTags] = useState<string[]>([]);
+  const [uuid] = useState(uuidV4());
 
   const router = useRouter();
 
   const isTagDuplicated = (string: string) => tags.find(tag => tag === string);
 
   const addTag = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputString = e.target.value;
+    const inputString = e.target.value.trim();
     if (!inputString.includes(',')) return;
     const targetIndex = inputString.lastIndexOf(',');
     const inputTag = inputString.substring(0, targetIndex);
-    if (!isTagDuplicated(inputTag)) {
+    if (!isTagDuplicated(inputTag) && inputTag !== '') {
       setTags(prev => [...prev, inputTag]);
       e.target.value = '';
     }
@@ -64,6 +70,25 @@ function Write() {
     setTags(prev => prev.slice(0, -1));
   };
 
+  useEffect(() => {
+    const deleteTempImage = () => {
+      const body: AxiosRequestConfig = {
+        params: {
+          uuid,
+        },
+      };
+      axiosClient.delete('/api/write/image', body);
+    };
+
+    return () => {
+      if (!uuid || !needCleanUp.current) {
+        needCleanUp.current = true;
+        return;
+      }
+      deleteTempImage();
+    };
+  }, [uuid]);
+
   return (
     <PortalWrap wrapperId="writePortal">
       <div
@@ -81,8 +106,13 @@ function Write() {
             />
           </div>
           <div className="mb-3 flex flex-wrap  ">
-            {tags.map(tag => (
-              <WriteTag key={tag} title={tag} onClick={() => {}} />
+            {tags.map((tag, index) => (
+              <WriteTag
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${tag}_${index}`}
+                title={tag}
+                onClick={() => {}}
+              />
             ))}
             <input
               placeholder="태그를 입력하세요"
@@ -101,6 +131,7 @@ function Write() {
             theme={darkMode ? 'dark' : 'light'}
             autofocus={false}
             ref={editorRef}
+            uuid={uuid}
           />
           <div className="flex h-16 w-full items-center justify-between">
             <button type="button" onClick={() => router.back()}>
