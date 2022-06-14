@@ -1,4 +1,4 @@
-import Swal from 'sweetalert2';
+import Swal, { SweetAlertOptions } from 'sweetalert2';
 
 /* eslint-disable import/prefer-default-export */
 export function cls(...classnames: string[]) {
@@ -9,6 +9,7 @@ export const makeAlert = async (
   message: { title?: string; content?: string },
   flag: 'success' | 'error',
   darkMode: boolean,
+  etc?: SweetAlertOptions,
 ) => {
   return Swal.fire({
     icon: flag,
@@ -18,6 +19,7 @@ export const makeAlert = async (
     timer: 1500,
     color: darkMode ? 'white' : '#312f3a',
     background: darkMode ? '#1B262C' : '#F9F7F7',
+    ...etc,
   });
 };
 

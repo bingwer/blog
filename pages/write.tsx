@@ -25,6 +25,8 @@ interface writeFormType {
   title: string;
 }
 
+const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
+
 const PortalWrap = dynamic(() => import('@libs/client/PortalWrap'), {
   ssr: false,
 });
@@ -102,6 +104,12 @@ function Write() {
     if (!conf) return;
 
     const content = editor.getInstance().getHTML();
+
+    if (content === toastEditorEmptyString) {
+      makeAlert({ content: '글 내용이 없습니다.' }, 'error', darkMode);
+      return;
+    }
+
     const body = {
       title,
       content,

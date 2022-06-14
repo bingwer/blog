@@ -19,12 +19,16 @@ model User {
 }
 
 model Post {
-  id            Int        @id @unique @default(autoincrement())
-  uuid          String     @unique
+  id            Int           @id @unique @default(autoincrement())
+  uuid          String        @unique
+  url           String        @unique
   thumbnailPath String?
-  content       String     @db.MediumText
+  content       String        @db.MediumText
   isTemp        Boolean
+  isPrivate     Boolean
+  hit           Int
   Tags          Post_Tag[]
+  Series        Post_Series[]
 }
 
 model Tag {
@@ -41,4 +45,21 @@ model Post_Tag {
   assignedAt DateTime @default(now())
 
   @@id([postId, tagId])
+}
+
+model Series {
+  id            Int           @id @unique @default(autoincrement())
+  name          String        @unique
+  thumbnailPath String
+  Posts         Post_Series[]
+}
+
+model Post_Series {
+  post       Post     @relation(fields: [postId], references: [id])
+  postId     Int
+  Series     Series   @relation(fields: [seriesId], references: [id])
+  seriesId   Int
+  assignedAt DateTime @default(now())
+
+  @@id([postId, seriesId])
 }
