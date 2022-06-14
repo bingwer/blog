@@ -9,12 +9,23 @@ export default function useDarkMode(): useDarkModeProps {
   const dispatch = useDispatch();
   const isDarkMode = useSelector(state => state.commmon.darkMode);
 
+  const checkStorage = useCallback(() => {
+    const savedTheme = localStorage.getItem('polarScriptTheme');
+    return savedTheme;
+  }, []);
+
   const setDarkMode = useCallback(
     (flag: boolean) => {
-      if (flag) {
-        dispatch(commonActions.set_darkMode());
-      } else {
-        dispatch(commonActions.set_lightMode());
+      try {
+        if (flag) {
+          localStorage.setItem('polarScriptTheme', 'dark');
+          dispatch(commonActions.set_darkMode());
+        } else {
+          localStorage.setItem('polarScriptTheme', 'light');
+          dispatch(commonActions.set_lightMode());
+        }
+      } catch (e) {
+        console.error(e);
       }
     },
     [dispatch],
@@ -23,8 +34,17 @@ export default function useDarkMode(): useDarkModeProps {
   useEffect(() => {
     const darkModeQuery =
       window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    const theme = checkStorage();
 
-    setDarkMode(darkModeQuery.matches);
+    if (checkStorage()) {
+      if (theme === 'dark') {
+        setDarkMode(true);
+      } else {
+        setDarkMode(false);
+      }
+    } else {
+      setDarkMode(darkModeQuery.matches);
+    }
 
     try {
       darkModeQuery.addEventListener('change', e => {
@@ -34,7 +54,7 @@ export default function useDarkMode(): useDarkModeProps {
     } catch (err) {
       console.error(err);
     }
-  }, [setDarkMode]);
+  }, [setDarkMode, checkStorage]);
 
   return [isDarkMode, setDarkMode];
 }
