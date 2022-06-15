@@ -1,6 +1,6 @@
 import { useSelector } from '@store';
 import { commonActions } from '@store/common';
-import { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
 type useDarkModeProps = [boolean, (flag: boolean) => void];
@@ -46,14 +46,18 @@ export default function useDarkMode(): useDarkModeProps {
       setDarkMode(darkModeQuery.matches);
     }
 
+    const onChangeQuery = (e: MediaQueryListEvent) => {
+      const detectedDarkMode = e.matches;
+      setDarkMode(detectedDarkMode);
+    };
+
     try {
-      darkModeQuery.addEventListener('change', e => {
-        const detectedDarkMode = e.matches;
-        setDarkMode(detectedDarkMode);
-      });
+      darkModeQuery.addEventListener('change', onChangeQuery);
     } catch (err) {
       console.error(err);
     }
+
+    return () => darkModeQuery.removeEventListener('change', onChangeQuery);
   }, [setDarkMode, checkStorage]);
 
   return [isDarkMode, setDarkMode];
