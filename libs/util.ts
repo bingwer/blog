@@ -20,6 +20,8 @@ export const makeAlert = async (
     color: darkMode ? 'white' : '#312f3a',
     background: darkMode ? '#1B262C' : '#F9F7F7',
     ...etc,
+  }).catch(e => {
+    return e;
   });
 };
 
@@ -38,7 +40,11 @@ export const makeConfirmAlert = async (
     color: darkMode ? 'white' : '#312f3a',
     background: darkMode ? '#1B262C' : '#F9F7F7',
     confirmButtonColor: darkMode ? '#0F4C75' : '#398AB9',
-  }).then(result => {
-    return result.isConfirmed;
-  });
+  })
+    .then(result => {
+      return result.isConfirmed;
+    })
+    .catch(e => {
+      return e;
+    });
 };

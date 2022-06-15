@@ -12,6 +12,10 @@ declare module 'iron-session' {
 const cookieOptions: IronSessionOptions = {
   cookieName: 'polarScript',
   password: process.env.SESSION_KEY!,
+  cookieOptions: {
+    maxAge: undefined,
+    secure: false,
+  },
 };
 
 export default function withSession(func: any) {
