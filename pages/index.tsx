@@ -6,10 +6,8 @@ import useUser from '@hooks/useUser';
 function Post() {
   return (
     <SubLayout>
-      <div className="xl:rlative h-full">
-        <TagList />
-        <PostList />
-      </div>
+      <TagList />
+      <PostList />
     </SubLayout>
   );
 }
