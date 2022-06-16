@@ -1,17 +1,9 @@
-import { ToastEditorProps } from '@components/write/ToastEditor';
 import useDarkMode from '@hooks/useDarkMode';
 import useUser from '@hooks/useUser';
 import { makeAlert, makeConfirmAlert } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidV4 } from 'uuid';
 import useMutation from '@hooks/useMutation';
 import axiosClient from '@libs/client/axiosClient';
@@ -24,41 +16,31 @@ import PostWriteContainer from '@components/write/PostWriteContainer';
 
 export interface writeFormType {
   title: string;
+  summary: string;
+  url: string;
 }
 
 const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
-
-const ToastEditor = dynamic<ToastEditorProps>(
-  () => import('@components/write/ToastEditor').then(m => m.default),
-  {
-    ssr: false,
-  },
-);
-
-const EditorWrap = forwardRef<Editor, ToastEditorProps>((props, ref) => {
-  return (
-    <ToastEditor {...props} editorRef={ref as React.MutableRefObject<Editor>} />
-  );
-});
-
-EditorWrap.displayName = 'EditorWarp';
 
 function Write() {
   useUser();
   const editorRef = useRef<Editor>(null);
   const needCleanUp = useRef(false);
-  const thumbnailPath = useRef<undefined | string>(undefined);
+  const [thumbnailPath, setThumbnailPath] = useState<string | undefined>();
   const [nextStep, setNextStep] = useState(false);
   const [uuid] = useState(uuidV4());
   const [tags, { addTag, deleteTagFromEnd, deleteTagByClick }] = useTags();
   const [darkMode] = useDarkMode();
-  const { register, handleSubmit } = useForm<writeFormType>();
+  const { register, handleSubmit, getValues, setValue, watch } =
+    useForm<writeFormType>();
   const [uploadPost, { data, loading, error }] =
     useMutation<ResponseType>('/api/write');
 
   const router = useRouter();
 
   const savePost = async (formData: writeFormType) => {
+    console.log(formData);
+    return;
     if (loading) return;
     const editor = editorRef.current;
     const { title } = formData;
@@ -88,7 +70,7 @@ function Write() {
       isTemp: false,
       tags,
     };
-    uploadPost(body);
+    //uploadPost(body);
   };
 
   const onSuccess = useCallback(async () => {
@@ -153,12 +135,20 @@ function Write() {
         setNextStep={setNextStep}
         uuid={uuid}
         savePost={savePost}
-        thumbnailPath={thumbnailPath}
+        setThumbnailPath={setThumbnailPath}
       />
       <PostSaveContainer
         nextStep={nextStep}
+        editorRef={editorRef as React.MutableRefObject<Editor>}
         setNextStep={setNextStep}
-        thumbnailPath={thumbnailPath.current}
+        thumbnailPath={thumbnailPath}
+        setThumbnailPath={setThumbnailPath}
+        getFormValue={getValues}
+        formRegister={register}
+        handleFormSubmit={handleSubmit}
+        savePost={savePost}
+        setFormValue={setValue}
+        formWatch={watch}
       />
     </>
   );
