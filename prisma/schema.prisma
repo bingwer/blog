@@ -22,11 +22,14 @@ model Post {
   id            Int           @id @unique @default(autoincrement())
   uuid          String        @unique
   url           String        @unique
+  title         String
+  description   String
   thumbnailPath String?
   content       String        @db.MediumText
   isTemp        Boolean
   isPrivate     Boolean
   hit           Int
+  like          Int
   Tags          Post_Tag[]
   Series        Post_Series[]
 }
@@ -50,7 +53,8 @@ model Post_Tag {
 model Series {
   id            Int           @id @unique @default(autoincrement())
   name          String        @unique
-  thumbnailPath String
+  thumbnailPath String?
+  url           String
   Posts         Post_Series[]
 }
 

@@ -42,7 +42,7 @@ interface PostWriteContainerProps {
   deleteTagByClick: (tagId: string) => void;
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
   uuid: string;
-  thumbnailPath: React.MutableRefObject<string | undefined>;
+  setThumbnailPath: React.Dispatch<React.SetStateAction<string | undefined>>;
   savePost: (fromData: writeFormType) => Promise<void>;
 }
 
@@ -57,7 +57,7 @@ function PostWriteContainer(props: PostWriteContainerProps) {
     deleteTagByClick,
     setNextStep,
     uuid,
-    thumbnailPath,
+    setThumbnailPath,
     savePost,
   } = props;
   const tagInputRef = useRef<HTMLInputElement>(null);
@@ -117,7 +117,7 @@ function PostWriteContainer(props: PostWriteContainerProps) {
             autofocus={false}
             ref={editorRef}
             uuid={uuid}
-            thumbnailPathRef={thumbnailPath}
+            setThumbnailPath={setThumbnailPath}
           />
           <div className="flex h-16 w-full items-center justify-between">
             <button type="button" onClick={() => router.back()}>
