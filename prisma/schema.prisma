@@ -55,6 +55,7 @@ model Series {
   name          String        @unique
   thumbnailPath String?
   url           String
+  createdAt     DateTime      @default(now())
   Posts         Post_Series[]
 }
 

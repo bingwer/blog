@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import useDarkMode from '@hooks/useDarkMode';
 import PortalWrap from '@libs/client/PortalWrap';
+import useSeries from '@hooks/write/useSeries';
 import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import removeMarkdown from 'markdown-to-text';
@@ -20,13 +21,13 @@ interface PostSaveContainerProps {
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
   thumbnailPath: string | undefined;
   editorRef: React.MutableRefObject<Editor>;
-  getFormValue: UseFormGetValues<writeFormType>;
-  formRegister: UseFormRegister<writeFormType>;
-  handleFormSubmit: UseFormHandleSubmit<writeFormType>;
-  savePost: (FormData: writeFormType) => Promise<void>;
-  setFormValue: UseFormSetValue<writeFormType>;
+  getFormValue: UseFormGetValues<WriteFormType>;
+  formRegister: UseFormRegister<WriteFormType>;
+  handleFormSubmit: UseFormHandleSubmit<WriteFormType>;
+  savePost: (FormData: WriteFormType) => Promise<void>;
+  setFormValue: UseFormSetValue<WriteFormType>;
   setThumbnailPath: React.Dispatch<React.SetStateAction<undefined | string>>;
-  formWatch: UseFormWatch<writeFormType>;
+  formWatch: UseFormWatch<WriteFormType>;
 }
 
 // eslint-disable-next-line no-useless-escape
@@ -50,6 +51,8 @@ function PostSaveContainer(props: PostSaveContainerProps) {
   const [isPrivate, setIsPrivate] = useState(false);
   const [openSeriesMenu, setOpenSeriesMenu] = useState(false);
   const [tempThumbnailPath, setTempThumbnailPath] = useState(thumbnailPath);
+  const { selectedSeries, setSelectedSeries, seriesList, addSeries } =
+    useSeries();
 
   useEffect(() => {
     if (!nextStep) return;
@@ -152,6 +155,15 @@ function PostSaveContainer(props: PostSaveContainerProps) {
               </div>
             </section>
             <div className="h-1 w-[21rem] bg-l-mainColor dark:bg-d-mainColor md:h-96 md:w-1" />
+            {openSeriesMenu ? (
+              <AddSeriesContainer
+                setOpenSeriesMenu={setOpenSeriesMenu}
+                selectedSeries={selectedSeries}
+                setSelectedSeries={setSelectedSeries}
+                seriesList={seriesList}
+                addSeries={addSeries}
+              />
+            ) : (
               <section className="flex h-96 w-96 flex-col justify-between px-6">
                 <div className="flex h-[17rem] w-full flex-col justify-between">
                   <div>
@@ -215,12 +227,10 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                     <p className="mb-3 text-xl">URL 설정</p>
                     <input
                       type="text"
-                      className="h-10 w-full bg-white pb-1 pl-[7.6rem] pr-3 text-text-dark focus:outline-none dark:bg-black dark:text-text-white"
+                      className="h-10 w-full bg-white pb-1 pl-[3.55rem] pr-3 text-text-dark focus:outline-none dark:bg-black dark:text-text-white"
                       {...formRegister('url')}
                     />
-                    <span className="absolute left-3 top-[2.9rem]">
-                      @/polarscript/
-                    </span>
+                    <span className="absolute left-3 top-[2.9rem]">/post/</span>
                   </div>
                   <div>
                     <p className="mb-3 text-xl">모음집 설정</p>
@@ -268,6 +278,7 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                   </div>
                 </div>
               </section>
+            )}
           </div>
         </div>
       </div>
