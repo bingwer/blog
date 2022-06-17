@@ -14,7 +14,7 @@ import useTags from '@hooks/write/useTags';
 import PostSaveContainer from '@components/write/PostSaveContainer';
 import PostWriteContainer from '@components/write/PostWriteContainer';
 
-export interface writeFormType {
+export interface WriteFormType {
   title: string;
   summary: string;
   url: string;
@@ -32,13 +32,13 @@ function Write() {
   const [tags, { addTag, deleteTagFromEnd, deleteTagByClick }] = useTags();
   const [darkMode] = useDarkMode();
   const { register, handleSubmit, getValues, setValue, watch } =
-    useForm<writeFormType>();
+    useForm<WriteFormType>();
   const [uploadPost, { data, loading, error }] =
     useMutation<ResponseType>('/api/write');
 
   const router = useRouter();
 
-  const savePost = async (formData: writeFormType) => {
+  const savePost = async (formData: WriteFormType) => {
     console.log(formData);
     return;
     if (loading) return;

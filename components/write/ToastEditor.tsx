@@ -26,7 +26,7 @@ export interface ToastEditorProps extends EditorProps {
   setThumbnailPath: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-interface uploadImageResponseType extends ResponseType {
+interface UploadImageResponseType extends ResponseType {
   data: { filePath: string };
 }
 
@@ -42,7 +42,7 @@ function ToastEditor(props: ToastEditorProps) {
       try {
         const {
           data: { filePath },
-        }: uploadImageResponseType = await axiosClient.post(
+        }: UploadImageResponseType = await axiosClient.post(
           '/api/write/image',
           body,
         );

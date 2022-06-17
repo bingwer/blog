@@ -12,7 +12,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
-import { writeFormType } from 'pages/write';
+import { WriteFormType } from 'pages/write';
 import AddSeriesContainer from './AddSeriesContainer';
 
 interface PostSaveContainerProps {

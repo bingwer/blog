@@ -44,7 +44,7 @@ async function handler(
         }),
       },
     });
-    res.json({
+    res.status(200).json({
       ok: true,
     });
   } catch (e: any) {

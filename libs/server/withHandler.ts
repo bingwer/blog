@@ -6,7 +6,7 @@ export interface ResponseType {
 
 type methods = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-interface withHandlerProps {
+interface WithHandlerProps {
   methods: methods[];
   handler: (req: NextApiRequest, res: NextApiResponse) => void;
   isPrivate?: boolean;
@@ -16,7 +16,7 @@ export default function withHandler({
   methods: handlerMethods,
   handler,
   isPrivate = false,
-}: withHandlerProps) {
+}: WithHandlerProps) {
   return async function WrappedHandler(
     req: NextApiRequest,
     res: NextApiResponse,
