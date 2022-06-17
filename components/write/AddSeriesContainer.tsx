@@ -1,35 +1,46 @@
-import useSeries from '@hooks/write/useSeries';
+import { AddSeriesFormType } from '@hooks/write/useSeries';
 import { cls } from '@libs/util';
 import { CustomSeries } from 'pages/api/series';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import {
+  useForm,
+  UseFormHandleSubmit,
+  UseFormRegister,
+  UseFormSetValue,
+} from 'react-hook-form';
 import OutsideClickHandler from 'react-outside-click-handler';
 
 interface AddSeriesContainerProps {
   setOpenSeriesMenu: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedSeries: number | undefined;
-  setSelectedSeries: React.Dispatch<React.SetStateAction<number | undefined>>;
-  seriesList: CustomSeries[] | undefined;
-  addSeries: (data: any) => void;
-}
-
-interface AddSeriesFormType {
-  seriesName: string;
-  seriesURL: string;
+  series: {
+    selectedSeries: number | undefined;
+    seriesList: CustomSeries[] | undefined;
+    actions: {
+      addSeries: (data: any) => void;
+      setSelectedSeries: React.Dispatch<
+        React.SetStateAction<number | undefined>
+      >;
+    };
+    formActions: {
+      register: UseFormRegister<AddSeriesFormType>;
+      setValue: UseFormSetValue<AddSeriesFormType>;
+      handleSubmit: UseFormHandleSubmit<AddSeriesFormType>;
+    };
+  };
 }
 
 function AddSeriesContainer(props: AddSeriesContainerProps) {
   const {
     setOpenSeriesMenu,
-    selectedSeries,
-    setSelectedSeries,
-    seriesList,
-    addSeries,
+    series: {
+      selectedSeries,
+      seriesList,
+      actions: { setSelectedSeries, addSeries },
+      formActions: { register, handleSubmit, setValue },
+    },
   } = props;
   const [showSeriesURLInput, setShowSeriesURLInput] = useState(false);
-  const { register, setValue, handleSubmit } = useForm<AddSeriesFormType>();
   const [isCustomURL, setIsCustomURL] = useState(false);
-
   const copyNameToURL = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isCustomURL) setValue('seriesURL', e.target.value);
   };
@@ -41,14 +52,15 @@ function AddSeriesContainer(props: AddSeriesContainerProps) {
         <OutsideClickHandler
           onOutsideClick={() => setShowSeriesURLInput(false)}
         >
-          <form>
+          <form onSubmit={addSeries && handleSubmit(addSeries)}>
             <div className="h-fit w-full space-y-2 bg-slate-200 p-3">
               <input
                 className="h-8 w-full px-3 focus:outline-none"
                 placeholder="새로운 모음집 이름 입력"
-                {...register('seriesName')}
+                {...register('seriesName', { required: true })}
                 onFocus={() => setShowSeriesURLInput(true)}
                 onChange={copyNameToURL}
+                required
               />
               {showSeriesURLInput && (
                 <div className="relative">
@@ -73,9 +85,8 @@ function AddSeriesContainer(props: AddSeriesContainerProps) {
                   <span>취소</span>
                 </button>
                 <button
-                  type="button"
+                  type="submit"
                   className="flex h-9 w-28 items-center justify-center space-x-4 rounded-md bg-l-mainColor text-sm text-text-white dark:bg-d-mainColor"
-                  onClick={addSeries && handleSubmit(addSeries)}
                 >
                   <span>모음집 추가</span>
                 </button>
@@ -96,12 +107,12 @@ function AddSeriesContainer(props: AddSeriesContainerProps) {
                 >
                   <button
                     type="button"
-                    className="w-full"
+                    className="flex w-full justify-start"
                     onClick={() => setSelectedSeries(id)}
                   >
-                    <p className="flex justify-start overflow-hidden text-ellipsis">
+                    <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                       {name}
-                    </p>
+                    </span>
                   </button>
                 </li>
               ))}
@@ -111,7 +122,10 @@ function AddSeriesContainer(props: AddSeriesContainerProps) {
           <button
             type="button"
             className="flex h-9 w-12 items-center justify-center space-x-4 rounded-md bg-transparent text-sm text-l-mainColor "
-            onClick={() => setOpenSeriesMenu(false)}
+            onClick={() => {
+              setOpenSeriesMenu(false);
+              setSelectedSeries(undefined);
+            }}
           >
             <span>취소</span>
           </button>

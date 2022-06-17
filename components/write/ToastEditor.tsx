@@ -22,40 +22,14 @@ import axiosClient from '@libs/client/axiosClient';
 export interface ToastEditorProps extends EditorProps {
   // eslint-disable-next-line react/require-default-props
   editorRef?: React.MutableRefObject<Editor>;
-  uuid: string;
-  setThumbnailPath: React.Dispatch<React.SetStateAction<string | undefined>>;
-}
-
-interface UploadImageResponseType extends ResponseType {
-  data: { filePath: string };
+  uploadImage: (
+    file: File,
+    callback?: ((url: string, flag: string) => void) | undefined,
+  ) => Promise<void>;
 }
 
 function ToastEditor(props: ToastEditorProps) {
-  const { editorRef, uuid, setThumbnailPath } = props;
-
-  const uploadImage = useCallback(
-    async (file: File, callback: (url: string, flag: string) => void) => {
-      const uuidFile = new File([file], `${uuid}${path.extname(file.name)}`);
-
-      const body = new FormData();
-      body.append('file', uuidFile);
-      try {
-        const {
-          data: { filePath },
-        }: UploadImageResponseType = await axiosClient.post(
-          '/api/write/image',
-          body,
-        );
-
-        setThumbnailPath(filePath);
-
-        callback(filePath, 'ImageURL');
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    [uuid, setThumbnailPath],
-  );
+  const { editorRef, uploadImage } = props;
 
   useEffect(() => {
     if (!editorRef || !(editorRef && editorRef.current instanceof Editor))
@@ -67,6 +41,7 @@ function ToastEditor(props: ToastEditorProps) {
       uploadImage(file, callback);
     });
   }, [editorRef, uploadImage]);
+
   return (
     <Editor
       {...props}

@@ -5,9 +5,9 @@ import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { writeFormType } from 'pages/write';
+import { WriteFormType } from 'pages/write';
 import React, { forwardRef, useRef } from 'react';
-import { UseFormHandleSubmit, UseFormRegister } from 'react-hook-form';
+import { UseFormRegister } from 'react-hook-form';
 import WriteTag from './WriteTag';
 
 const PortalWrap = dynamic(() => import('@libs/client/PortalWrap'), {
@@ -31,34 +31,37 @@ EditorWrap.displayName = 'EditorWarp';
 
 interface PostWriteContainerProps {
   editorRef: React.MutableRefObject<Editor>;
-  register: UseFormRegister<writeFormType>;
-  handleSubmit: UseFormHandleSubmit<writeFormType>;
-  tags: string[];
-  addTag: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  deleteTagFromEnd: (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    inputElement: HTMLInputElement | null,
-  ) => void;
-  deleteTagByClick: (tagId: string) => void;
+  uploadImage: (
+    file: File,
+    callback?: ((url: string, flag: string) => void) | undefined,
+  ) => Promise<void>;
+  tag: {
+    tags: string[];
+    actions: {
+      addTag: (e: React.ChangeEvent<HTMLInputElement>) => void;
+      deleteTagFromEnd: (
+        e: React.KeyboardEvent<HTMLInputElement>,
+        inputElement: HTMLInputElement | null,
+      ) => void;
+      deleteTagByClick: (tagId: string) => void;
+    };
+  };
+  formAction: {
+    register: UseFormRegister<WriteFormType>;
+  };
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
-  uuid: string;
-  setThumbnailPath: React.Dispatch<React.SetStateAction<string | undefined>>;
-  savePost: (fromData: writeFormType) => Promise<void>;
 }
 
 function PostWriteContainer(props: PostWriteContainerProps) {
   const {
     editorRef,
-    handleSubmit,
-    register,
-    tags,
-    addTag,
-    deleteTagFromEnd,
-    deleteTagByClick,
+    uploadImage,
+    formAction: { register },
+    tag: {
+      tags,
+      actions: { addTag, deleteTagByClick, deleteTagFromEnd },
+    },
     setNextStep,
-    uuid,
-    setThumbnailPath,
-    savePost,
   } = props;
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [darkMode] = useDarkMode();
@@ -73,10 +76,7 @@ function PostWriteContainer(props: PostWriteContainerProps) {
           darkMode ? 'dark' : 'light',
         )}
       >
-        <form
-          className="w-full bg-l-backgroundColor px-12 py-5 text-text-dark dark:bg-d-backgroundColor dark:text-text-white"
-          onSubmit={handleSubmit(savePost)}
-        >
+        <form className="w-full bg-l-backgroundColor px-12 py-5 text-text-dark dark:bg-d-backgroundColor dark:text-text-white">
           <div className="mb-4 w-full border-b-2 border-l-mainColor dark:border-d-mainColor">
             <input
               placeholder="제목을 입력하세요"
@@ -110,14 +110,13 @@ function PostWriteContainer(props: PostWriteContainerProps) {
           </div>
           <EditorWrap
             previewStyle={windowWidth > 720 ? 'vertical' : 'tab'}
+            uploadImage={uploadImage}
             initialValue=" "
             language="ko-kr"
             height="700px"
             theme={darkMode ? 'dark' : 'light'}
             autofocus={false}
             ref={editorRef}
-            uuid={uuid}
-            setThumbnailPath={setThumbnailPath}
           />
           <div className="flex h-16 w-full items-center justify-between">
             <button type="button" onClick={() => router.back()}>

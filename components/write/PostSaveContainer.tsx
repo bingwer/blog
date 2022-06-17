@@ -21,13 +21,14 @@ interface PostSaveContainerProps {
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
   thumbnailPath: string | undefined;
   editorRef: React.MutableRefObject<Editor>;
-  getFormValue: UseFormGetValues<WriteFormType>;
-  formRegister: UseFormRegister<WriteFormType>;
-  handleFormSubmit: UseFormHandleSubmit<WriteFormType>;
+  formAction: {
+    getValues: UseFormGetValues<WriteFormType>;
+    register: UseFormRegister<WriteFormType>;
+    handleSubmit: UseFormHandleSubmit<WriteFormType>;
+    setValue: UseFormSetValue<WriteFormType>;
+    watch: UseFormWatch<WriteFormType>;
+  };
   savePost: (FormData: WriteFormType) => Promise<void>;
-  setFormValue: UseFormSetValue<WriteFormType>;
-  setThumbnailPath: React.Dispatch<React.SetStateAction<undefined | string>>;
-  formWatch: UseFormWatch<WriteFormType>;
 }
 
 // eslint-disable-next-line no-useless-escape
@@ -38,25 +39,19 @@ function PostSaveContainer(props: PostSaveContainerProps) {
   const {
     nextStep,
     setNextStep,
-    thumbnailPath,
     editorRef,
-    getFormValue,
-    formRegister,
-    handleFormSubmit,
+    formAction: { register, getValues, handleSubmit, setValue, watch },
+    thumbnailPath,
     savePost,
-    setFormValue,
-    setThumbnailPath,
-    formWatch,
   } = props;
   const [isPrivate, setIsPrivate] = useState(false);
   const [openSeriesMenu, setOpenSeriesMenu] = useState(false);
-  const [tempThumbnailPath, setTempThumbnailPath] = useState(thumbnailPath);
-  const { selectedSeries, setSelectedSeries, seriesList, addSeries } =
-    useSeries();
+  const [tempThumbnailPath, setTempThumbnailPath] = useState<string>();
+  const series = useSeries();
 
   useEffect(() => {
     if (!nextStep) return;
-    const defaultURL = getFormValue('title')
+    const defaultURL = getValues('title')
       ?.replace(regExp, '')
       ?.replaceAll(' ', '-');
     const defaultSummary =
@@ -65,9 +60,14 @@ function PostSaveContainer(props: PostSaveContainerProps) {
         0,
         150,
       );
-    if (getFormValue('url') === '') setFormValue('url', defaultURL);
-    if (getFormValue('summary') === '') setFormValue('summary', defaultSummary);
-  }, [getFormValue, editorRef, setFormValue, nextStep]);
+    if (getValues('url') === '') setValue('url', defaultURL);
+    if (getValues('summary') === '') setValue('summary', defaultSummary);
+  }, [getValues, editorRef, setValue, nextStep]);
+
+  useEffect(() => {
+    if (!nextStep) return;
+    if (thumbnailPath) setTempThumbnailPath(thumbnailPath);
+  }, [nextStep, thumbnailPath]);
 
   return (
     <PortalWrap wrapperId="writeconfirm">
@@ -145,12 +145,10 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                   className="h-28 w-full resize-none bg-white p-3 text-sm text-text-dark focus:outline-none dark:bg-black dark:text-text-white"
                   placeholder="포스트 요약을 입력하세요"
                   maxLength={150}
-                  {...formRegister('summary')}
+                  {...register('summary')}
                 />
                 <div className="flex w-full justify-end">
-                  <p className="text-sm">
-                    {formWatch('summary')?.length} / 150
-                  </p>
+                  <p className="text-sm">{watch('summary')?.length} / 150</p>
                 </div>
               </div>
             </section>
@@ -158,10 +156,7 @@ function PostSaveContainer(props: PostSaveContainerProps) {
             {openSeriesMenu ? (
               <AddSeriesContainer
                 setOpenSeriesMenu={setOpenSeriesMenu}
-                selectedSeries={selectedSeries}
-                setSelectedSeries={setSelectedSeries}
-                seriesList={seriesList}
-                addSeries={addSeries}
+                series={series}
               />
             ) : (
               <section className="flex h-96 w-96 flex-col justify-between px-6">
@@ -228,35 +223,87 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                     <input
                       type="text"
                       className="h-10 w-full bg-white pb-1 pl-[3.55rem] pr-3 text-text-dark focus:outline-none dark:bg-black dark:text-text-white"
-                      {...formRegister('url')}
+                      {...register('url')}
                     />
                     <span className="absolute left-3 top-[2.9rem]">/post/</span>
                   </div>
                   <div>
-                    <p className="mb-3 text-xl">모음집 설정</p>
-                    <div className="w-full">
-                      <button
-                        type="button"
-                        className="flex h-12  w-full items-center justify-center space-x-4 rounded-md bg-l-mainColor text-sm text-text-white dark:bg-d-mainColor"
-                        onClick={() => setOpenSeriesMenu(true)}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
+                    <p className="mb-1 text-xl">모음집 설정</p>
+                    {series && series?.selectedSeries ? (
+                      <div className="space-y-1">
+                        <div className="flex w-full items-center justify-between ">
+                          <span className="overflow-hidden text-ellipsis whitespace-nowrap pl-3">
+                            {`선택된 모음집 : 
+                          ${
+                            series?.seriesList &&
+                            series?.seriesList.find(
+                              ({ id }) => id === series?.selectedSeries,
+                            )?.name
+                          }`}
+                          </span>
+                          <button
+                            type="button"
+                            className="text-l-mainColor"
+                            onClick={() => setOpenSeriesMenu(true)}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-6 w-6"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="flex justify-end text-sm text-red-500">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              series &&
+                              series.actions.setSelectedSeries(undefined)
+                            }
+                          >
+                            모음집에서 제거
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full">
+                        <button
+                          type="button"
+                          className="flex h-12  w-full items-center justify-center space-x-4 rounded-md bg-l-mainColor text-sm text-text-white dark:bg-d-mainColor"
+                          onClick={() => setOpenSeriesMenu(true)}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                          />
-                        </svg>
-                        <span>모음집에 추가하기</span>
-                      </button>
-                    </div>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                            />
+                          </svg>
+                          <span>모음집에 추가하기</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -271,7 +318,7 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                     <button
                       type="button"
                       className="flex h-12 w-40 items-center justify-center space-x-4 rounded-md bg-l-mainColor text-sm text-text-white dark:bg-d-mainColor"
-                      onClick={handleFormSubmit(savePost)}
+                      onClick={handleSubmit(savePost)}
                     >
                       출간하기
                     </button>
