@@ -1,48 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import useDarkMode from '@hooks/useDarkMode';
 import PortalWrap from '@libs/client/PortalWrap';
-import useSeries from '@hooks/write/useSeries';
+import { useSeriesReturnType } from '@hooks/write/useSeries';
 import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import removeMarkdown from 'markdown-to-text';
 import Image from 'next/image';
 import {
-  UseFormGetValues,
-  UseFormHandleSubmit,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
+  ThumbnailType,
+  UploadPostType,
+  WriteFormActionType,
+} from '@hooks/write/useWritePost';
 import { WriteFormType } from 'pages/write';
 import AddSeriesContainer from './AddSeriesContainer';
 
 interface PostSaveContainerProps {
   nextStep: boolean;
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
-  thumbnail: {
-    uploadImage: (
-      file: File,
-      callback?: ((url: string, flag: string) => void) | undefined,
-    ) => Promise<void>;
-    thumbnailPath: string | undefined;
-    deleteThumbnail: () => void;
-  };
-
+  thumbnail: ThumbnailType;
+  series: useSeriesReturnType;
   editorRef: React.MutableRefObject<Editor>;
-  formAction: {
-    getValues: UseFormGetValues<WriteFormType>;
-    register: UseFormRegister<WriteFormType>;
-    handleSubmit: UseFormHandleSubmit<WriteFormType>;
-    setValue: UseFormSetValue<WriteFormType>;
-    watch: UseFormWatch<WriteFormType>;
-  };
-  upload: {
-    uploadPost: (
-      FormData: WriteFormType,
-      options: { isPrivate: boolean; selectedSeries: undefined | number },
-    ) => Promise<void>;
-    loading: boolean;
-  };
+  formAction: WriteFormActionType;
+  upload: UploadPostType;
 }
 
 // eslint-disable-next-line no-useless-escape

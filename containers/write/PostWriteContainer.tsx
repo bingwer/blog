@@ -1,6 +1,8 @@
 import { ToastEditorProps } from '@components/write/ToastEditor';
 import useDarkMode from '@hooks/useDarkMode';
 import useWindowWidth from '@hooks/useWindowWidth';
+import { UseTagReturnType } from '@hooks/write/useTags';
+import { WriteFormActionType } from '@hooks/write/useWritePost';
 import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import dynamic from 'next/dynamic';
@@ -33,23 +35,14 @@ interface PostWriteContainerProps {
   editorRef: React.MutableRefObject<Editor>;
   uploadImage: (
     file: File,
+    type: 'image' | 'thumbnail',
     callback?: ((url: string, flag: string) => void) | undefined,
   ) => Promise<void>;
-  tag: {
-    tags: string[];
-    actions: {
-      addTag: (e: React.ChangeEvent<HTMLInputElement>) => void;
-      deleteTagFromEnd: (
-        e: React.KeyboardEvent<HTMLInputElement>,
-        inputElement: HTMLInputElement | null,
-      ) => void;
-      deleteTagByClick: (tagId: string) => void;
-    };
-  };
-  formAction: {
-    register: UseFormRegister<WriteFormType>;
-  };
+  tag: UseTagReturnType;
+  formAction: WriteFormActionType;
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
+  // eslint-disable-next-line react/require-default-props
+  content?: string;
 }
 
 function PostWriteContainer(props: PostWriteContainerProps) {
@@ -57,10 +50,7 @@ function PostWriteContainer(props: PostWriteContainerProps) {
     editorRef,
     uploadImage,
     formAction: { register },
-    tag: {
-      tags,
-      actions: { addTag, deleteTagByClick, deleteTagFromEnd },
-    },
+    tag: [tags, { addTag, deleteTagByClick, deleteTagFromEnd }],
     setNextStep,
   } = props;
   const tagInputRef = useRef<HTMLInputElement>(null);
