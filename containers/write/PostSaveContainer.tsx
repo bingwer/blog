@@ -19,7 +19,15 @@ import AddSeriesContainer from './AddSeriesContainer';
 interface PostSaveContainerProps {
   nextStep: boolean;
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
-  thumbnailPath: string | undefined;
+  thumbnail: {
+    uploadImage: (
+      file: File,
+      callback?: ((url: string, flag: string) => void) | undefined,
+    ) => Promise<void>;
+    thumbnailPath: string | undefined;
+    deleteThumbnail: () => void;
+  };
+
   editorRef: React.MutableRefObject<Editor>;
   formAction: {
     getValues: UseFormGetValues<WriteFormType>;
@@ -28,7 +36,13 @@ interface PostSaveContainerProps {
     setValue: UseFormSetValue<WriteFormType>;
     watch: UseFormWatch<WriteFormType>;
   };
-  savePost: (FormData: WriteFormType) => Promise<void>;
+  upload: {
+    uploadPost: (
+      FormData: WriteFormType,
+      options: { isPrivate: boolean; selectedSeries: undefined | number },
+    ) => Promise<void>;
+    loading: boolean;
+  };
 }
 
 // eslint-disable-next-line no-useless-escape
@@ -41,32 +55,43 @@ function PostSaveContainer(props: PostSaveContainerProps) {
     setNextStep,
     editorRef,
     formAction: { register, getValues, handleSubmit, setValue, watch },
-    thumbnailPath,
-    savePost,
+    thumbnail: { thumbnailPath, uploadImage, deleteThumbnail },
+    upload: { uploadPost, loading },
   } = props;
   const [isPrivate, setIsPrivate] = useState(false);
   const [openSeriesMenu, setOpenSeriesMenu] = useState(false);
   const [tempThumbnailPath, setTempThumbnailPath] = useState<string>();
   const series = useSeries();
 
+  const uploadThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const image = e.target.files?.[0];
+    if (!image) return;
+    uploadImage(image);
+  };
+
+  const savePost = (data: WriteFormType) => {
+    uploadPost(data, { isPrivate, selectedSeries: series?.selectedSeries });
+  };
+
   useEffect(() => {
     if (!nextStep) return;
     const defaultURL = getValues('title')
       ?.replace(regExp, '')
       ?.replaceAll(' ', '-');
-    const defaultSummary =
+    const defaultDescription =
       editorRef &&
       removeMarkdown(editorRef?.current?.getInstance()?.getHTML()).slice(
         0,
         150,
       );
     if (getValues('url') === '') setValue('url', defaultURL);
-    if (getValues('summary') === '') setValue('summary', defaultSummary);
+    if (getValues('description') === '')
+      setValue('description', defaultDescription);
   }, [getValues, editorRef, setValue, nextStep]);
 
   useEffect(() => {
     if (!nextStep) return;
-    if (thumbnailPath) setTempThumbnailPath(thumbnailPath);
+    setTempThumbnailPath(thumbnailPath);
   }, [nextStep, thumbnailPath]);
 
   return (
@@ -95,11 +120,13 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                     />
                     <input
                       type="file"
-                      id="thumbnail"
+                      id="thumbnailChange"
                       className="invisible h-0 w-0"
+                      accept="image/*"
+                      onChange={uploadThumbnail}
                     />
                     <label
-                      htmlFor="thumbnail"
+                      htmlFor="thumbnailChange"
                       className="rounded-mdtext-center absolute -top-11 right-10 flex h-9 cursor-pointer items-center justify-center text-sm"
                     >
                       수정
@@ -107,7 +134,7 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                     <button
                       type="button"
                       className="absolute -top-11 right-0 flex h-9 cursor-pointer items-center justify-center rounded-md text-center text-sm"
-                      onClick={() => setTempThumbnailPath(undefined)}
+                      onClick={deleteThumbnail}
                     >
                       제거
                     </button>
@@ -128,27 +155,31 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
+                    <input
+                      type="file"
+                      id="thumbnailAdd"
+                      className="invisible h-0 w-0"
+                      accept="image/*"
+                      onChange={uploadThumbnail}
+                    />
                     <label
-                      htmlFor="thumbnail"
+                      htmlFor="thumbnailAdd"
                       className="flex h-9 w-32 items-center justify-center rounded-md bg-l-mainColor text-center text-sm text-text-white dark:bg-d-mainColor"
                     >
                       썸네일 업로드
                     </label>
-                    <input
-                      type="file"
-                      id="thumbnail"
-                      className="invisible h-0 w-0"
-                    />
                   </div>
                 )}
                 <textarea
                   className="h-28 w-full resize-none bg-white p-3 text-sm text-text-dark focus:outline-none dark:bg-black dark:text-text-white"
                   placeholder="포스트 요약을 입력하세요"
                   maxLength={150}
-                  {...register('summary')}
+                  {...register('description')}
                 />
                 <div className="flex w-full justify-end">
-                  <p className="text-sm">{watch('summary')?.length} / 150</p>
+                  <p className="text-sm">
+                    {watch('description')?.length} / 150
+                  </p>
                 </div>
               </div>
             </section>

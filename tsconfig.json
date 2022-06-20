@@ -21,7 +21,8 @@
       "@hooks/*": ["hooks/*"],
       "@image/*": ["public/image/*"],
       "@store": ["store/index"],
-      "@store/*": ["store/*"]
+      "@store/*": ["store/*"],
+      "@containers/*": ["containers/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

@@ -17,7 +17,7 @@ interface UploadImageResponseType extends ResponseType {
 }
 export interface WriteFormType {
   title: string;
-  summary: string;
+  description: string;
   url: string;
 }
 
@@ -30,15 +30,19 @@ function useWritePost(editorRef: RefObject<Editor>) {
   const [darkMode] = useDarkMode();
   const [thumbnailPath, setThumbnailPath] = useState<string | undefined>();
   const [tags, { addTag, deleteTagFromEnd, deleteTagByClick }] = useTags();
-  const [uploadPost, { data, loading, error }] =
+  const [uploadPostAPI, { data, loading, error }] =
     useMutation<ResponseType>('/api/write');
   const { register, handleSubmit, getValues, setValue, watch } =
     useForm<WriteFormType>();
 
-  const savePost = async (formData: WriteFormType) => {
+  const uploadPost = async (
+    formData: WriteFormType,
+    params: { isPrivate: boolean; selectedSeries: number | undefined },
+  ) => {
     if (loading) return;
     const editor = editorRef.current;
-    const { title, url, summary } = formData;
+    const { title, url, description } = formData;
+    const { isPrivate, selectedSeries } = params;
     if (!editor) return;
 
     const conf = await makeConfirmAlert(
@@ -64,12 +68,12 @@ function useWritePost(editorRef: RefObject<Editor>) {
       ...(thumbnailPath && { thumbnailPath }),
       tags,
       url,
-      summary,
+      description,
+      isPrivate,
+      ...(selectedSeries && { selectedSeries }),
     };
 
-    console.log(body);
-
-    //uploadPost(body);
+    uploadPostAPI(body);
   };
 
   const uploadImage = useCallback(
@@ -96,6 +100,19 @@ function useWritePost(editorRef: RefObject<Editor>) {
     [uuid, setThumbnailPath],
   );
 
+  const deleteTempImage = useCallback((postUuid: string) => {
+    const body: AxiosRequestConfig = {
+      params: {
+        uuid: postUuid,
+      },
+    };
+    axiosClient.delete('/api/write/image', body);
+  }, []);
+
+  const deleteThumbnail = () => {
+    setThumbnailPath(undefined);
+  };
+
   const onSuccess = useCallback(async () => {
     await makeAlert(
       { content: '포스트가 등록되었습니다.' },
@@ -114,23 +131,14 @@ function useWritePost(editorRef: RefObject<Editor>) {
   }, [darkMode]);
 
   useEffect(() => {
-    const deleteTempImage = () => {
-      const body: AxiosRequestConfig = {
-        params: {
-          uuid,
-        },
-      };
-      axiosClient.delete('/api/write/image', body);
-    };
-
     return () => {
       if (!uuid || !needCleanUp.current) {
         needCleanUp.current = true;
         return;
       }
-      deleteTempImage();
+      deleteTempImage(uuid);
     };
-  }, [uuid]);
+  }, [uuid, deleteTempImage]);
 
   useEffect(() => {
     if (data && data.ok) {
@@ -146,9 +154,15 @@ function useWritePost(editorRef: RefObject<Editor>) {
   }, [error, onError]);
 
   return {
-    savePost,
-    uploadImage,
-    thumbnailPath,
+    upload: {
+      uploadPost,
+      loading,
+    },
+    thumbnail: {
+      thumbnailPath,
+      uploadImage,
+      deleteThumbnail,
+    },
     tag: {
       tags,
       actions: {

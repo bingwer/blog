@@ -3,7 +3,6 @@ import { cls } from '@libs/util';
 import { CustomSeries } from 'pages/api/series';
 import React, { useState } from 'react';
 import {
-  useForm,
   UseFormHandleSubmit,
   UseFormRegister,
   UseFormSetValue,

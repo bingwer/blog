@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { WriteFormType } from 'pages/write';
 import React, { forwardRef, useRef } from 'react';
 import { UseFormRegister } from 'react-hook-form';
-import WriteTag from './WriteTag';
+import WriteTag from '../../components/write/WriteTag';
 
 const PortalWrap = dynamic(() => import('@libs/client/PortalWrap'), {
   ssr: false,

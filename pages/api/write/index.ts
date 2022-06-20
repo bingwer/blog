@@ -9,7 +9,17 @@ async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseType>,
 ) {
-  const { title, content, thumbnailPath, uuid, isTemp, tags } = req.body;
+  const {
+    title,
+    content,
+    thumbnailPath,
+    uuid,
+    tags,
+    description,
+    url,
+    isPrivate,
+    selectedSeries,
+  } = req.body;
 
   if (!title || !content || content === toastEditorEmptyString) {
     res.status(500).end();
@@ -21,9 +31,11 @@ async function handler(
       data: {
         title,
         content,
-        thumbnailPath,
+        description,
         uuid,
-        isTemp,
+        url,
+        isPrivate,
+        ...(thumbnailPath && { thumbnailPath }),
         ...(tags.length > 0 && {
           Tags: {
             create: tags.map((tagName: string) => {
@@ -40,6 +52,17 @@ async function handler(
                 },
               };
             }),
+          },
+        }),
+        ...(selectedSeries && {
+          Series: {
+            create: {
+              series: {
+                connect: {
+                  id: +selectedSeries,
+                },
+              },
+            },
           },
         }),
       },
