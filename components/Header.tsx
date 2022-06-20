@@ -5,6 +5,8 @@ import { useSelector } from '@store';
 import useScrollPosition from '@hooks/useScrollPosition';
 import useDarkMode from '@hooks/useDarkMode';
 import useUser from '@hooks/useUser';
+import Image from 'next/image';
+import logo from '@images/logo.png';
 
 interface HeaderProps {
   isAnim: boolean;
@@ -29,7 +31,13 @@ function Header({ isAnim }: HeaderProps) {
       <div className="containe z-10 my-0 mx-auto flex w-full max-w-4xl select-none items-center justify-between py-0 px-8">
         <Link href="/">
           <a className="logo flex cursor-pointer items-center">
-            <img className="mr-2 mt-1 w-14" src="image/logo.png" alt="Logo" />
+            <Image
+              className="mr-2 mt-1 w-14"
+              src={logo}
+              alt="Logo"
+              width={56}
+              height={56}
+            />
             <h1 className="text-2xl font-extrabold leading-5 text-text-dark dark:text-white">
               PolarScript
             </h1>

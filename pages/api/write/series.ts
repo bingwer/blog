@@ -2,15 +2,10 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import withHandler, { ResponseType } from '@libs/server/withHandler';
 import withSession from '@libs/server/withSession';
 import { prisma } from '@libs/server/prismaClient';
-import { Series } from '@prisma/client';
-
-interface SeiresReturnType extends ResponseType {
-  series?: Series[];
-}
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<SeiresReturnType>,
+  res: NextApiResponse<ResponseType>,
 ) {
   const { seriesName: name, seriesURL: url } = req.body;
 
@@ -31,11 +26,6 @@ async function handler(
       res.status(200).json({
         ok: true,
       });
-    }
-
-    if (req.method === 'GET') {
-      const series = await prisma.series.findMany();
-      res.status(200).json({ ok: true, series });
     }
   } catch (e: any) {
     console.log(e);

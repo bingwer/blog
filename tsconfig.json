@@ -22,7 +22,8 @@
       "@image/*": ["public/image/*"],
       "@store": ["store/index"],
       "@store/*": ["store/*"],
-      "@containers/*": ["containers/*"]
+      "@containers/*": ["containers/*"],
+      "@images/*": ["public/image/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
