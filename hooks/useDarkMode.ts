@@ -1,6 +1,6 @@
 import { useSelector } from '@store';
 import { commonActions } from '@store/common';
-import { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
 type useDarkModeProps = [boolean, (flag: boolean) => void];
@@ -9,12 +9,23 @@ export default function useDarkMode(): useDarkModeProps {
   const dispatch = useDispatch();
   const isDarkMode = useSelector(state => state.commmon.darkMode);
 
+  const checkStorage = useCallback(() => {
+    const savedTheme = localStorage.getItem('polarScriptTheme');
+    return savedTheme;
+  }, []);
+
   const setDarkMode = useCallback(
     (flag: boolean) => {
-      if (flag) {
-        dispatch(commonActions.set_darkMode());
-      } else {
-        dispatch(commonActions.set_lightMode());
+      try {
+        if (flag) {
+          localStorage.setItem('polarScriptTheme', 'dark');
+          dispatch(commonActions.set_darkMode());
+        } else {
+          localStorage.setItem('polarScriptTheme', 'light');
+          dispatch(commonActions.set_lightMode());
+        }
+      } catch (e) {
+        console.error(e);
       }
     },
     [dispatch],
@@ -23,18 +34,31 @@ export default function useDarkMode(): useDarkModeProps {
   useEffect(() => {
     const darkModeQuery =
       window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    const theme = checkStorage();
 
-    setDarkMode(darkModeQuery.matches);
+    if (checkStorage()) {
+      if (theme === 'dark') {
+        setDarkMode(true);
+      } else {
+        setDarkMode(false);
+      }
+    } else {
+      setDarkMode(darkModeQuery.matches);
+    }
+
+    const onChangeQuery = (e: MediaQueryListEvent) => {
+      const detectedDarkMode = e.matches;
+      setDarkMode(detectedDarkMode);
+    };
 
     try {
-      darkModeQuery.addEventListener('change', e => {
-        const detectedDarkMode = e.matches;
-        setDarkMode(detectedDarkMode);
-      });
+      darkModeQuery.addEventListener('change', onChangeQuery);
     } catch (err) {
       console.error(err);
     }
-  }, [setDarkMode]);
+
+    return () => darkModeQuery.removeEventListener('change', onChangeQuery);
+  }, [setDarkMode, checkStorage]);
 
   return [isDarkMode, setDarkMode];
 }

@@ -14,7 +14,7 @@ export const config = {
   },
 };
 
-interface uploadType extends ResponseType {
+interface UploadType extends ResponseType {
   filePath?: string;
 }
 
@@ -56,7 +56,7 @@ const uploadFile = upload.single('file');
 handler.use(uploadFile);
 
 handler.post(
-  (req: NextApiRequestWithFile, res: NextApiResponse<uploadType>) => {
+  (req: NextApiRequestWithFile, res: NextApiResponse<UploadType>) => {
     try {
       const filePath = req.file.path.replace('public', '');
       res.status(200).json({ ok: true, filePath });

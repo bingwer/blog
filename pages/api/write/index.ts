@@ -3,13 +3,25 @@ import withHandler, { ResponseType } from '@libs/server/withHandler';
 import withSession from '@libs/server/withSession';
 import { prisma } from '@libs/server/prismaClient';
 
+const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
+
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseType>,
 ) {
-  const { title, content, thumbnailPath, uuid, isTemp, tags } = req.body;
+  const {
+    title,
+    content,
+    thumbnailPath,
+    uuid,
+    tags,
+    description,
+    url,
+    isPrivate,
+    selectedSeries,
+  } = req.body;
 
-  if (!title || !content) {
+  if (!title || !content || content === toastEditorEmptyString) {
     res.status(500).end();
     return;
   }
@@ -19,9 +31,11 @@ async function handler(
       data: {
         title,
         content,
-        thumbnailPath,
+        description,
         uuid,
-        isTemp,
+        url,
+        isPrivate,
+        ...(thumbnailPath && { thumbnailPath }),
         ...(tags.length > 0 && {
           Tags: {
             create: tags.map((tagName: string) => {
@@ -40,9 +54,20 @@ async function handler(
             }),
           },
         }),
+        ...(selectedSeries && {
+          Series: {
+            create: {
+              series: {
+                connect: {
+                  id: +selectedSeries,
+                },
+              },
+            },
+          },
+        }),
       },
     });
-    res.json({
+    res.status(200).json({
       ok: true,
     });
   } catch (e: any) {

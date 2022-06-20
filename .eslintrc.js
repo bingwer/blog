@@ -51,6 +51,22 @@ module.exports = {
     'jsx-a11y/anchor-is-valid': 'off', // next js 에서는 a태그에 href 없이 사용
     'react/react-in-jsx-scope': 'off',
     'react/jsx-props-no-spreading': 'off', //spreding 허용
+    'jsx-a11y/label-has-associated-control': [
+      'error',
+      {
+        required: {
+          some: ['nesting', 'id'],
+        },
+      },
+    ],
+    'jsx-a11y/label-has-for': [
+      'error',
+      {
+        required: {
+          some: ['nesting', 'id'],
+        },
+      },
+    ],
   },
   settings: {
     'import/resolver': {

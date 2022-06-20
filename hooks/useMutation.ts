@@ -2,16 +2,16 @@ import { useState } from 'react';
 import axiosClient from '@libs/client/axiosClient';
 import { AxiosError } from 'axios';
 
-interface useMutationState<T> {
+interface UseMutationState<T> {
   loading: boolean;
   data?: T;
   error?: any | AxiosError;
 }
 
-type useMutationResult<T> = [(data: any) => void, useMutationState<T>];
+type useMutationResult<T> = [(data: any) => void, UseMutationState<T>];
 
 function useMutation<T = any>(url: string): useMutationResult<T> {
-  const [result, setResult] = useState<useMutationState<T>>({
+  const [result, setResult] = useState<UseMutationState<T>>({
     loading: false,
     data: undefined,
     error: undefined,

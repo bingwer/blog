@@ -1,171 +1,45 @@
-import { ToastEditorProps } from '@components/write/ToastEditor';
-import WriteTag from '@components/write/WriteTag';
-import useDarkMode from '@hooks/useDarkMode';
 import useUser from '@hooks/useUser';
-import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
-import dynamic from 'next/dynamic';
-import { useRouter } from 'next/router';
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
-import useWindowWidth from '@hooks/useWindowWidth';
-import { v4 as uuidV4 } from 'uuid';
-import useMutation from '@hooks/useMutation';
-import axiosClient from '@libs/client/axiosClient';
-import { AxiosRequestConfig } from 'axios';
+import React, { useRef, useState } from 'react';
+import PostSaveContainer from '@containers/write/PostSaveContainer';
+import PostWriteContainer from '@containers/write/PostWriteContainer';
+import useWritePost from '@hooks/write/useWritePost';
 
-const PortalWrap = dynamic(() => import('@libs/client/PortalWrap'), {
-  ssr: false,
-});
-
-const ToastEditor = dynamic<ToastEditorProps>(
-  () => import('@components/write/ToastEditor'),
-  {
-    ssr: false,
-  },
-);
-
-const EditorWrap = forwardRef<Editor, ToastEditorProps>((props, ref) => {
-  return (
-    <ToastEditor {...props} editorRef={ref as React.MutableRefObject<Editor>} />
-  );
-});
-
-EditorWrap.displayName = 'EditorWarp';
+export interface WriteFormType {
+  title: string;
+  description: string;
+  url: string;
+}
 
 function Write() {
   useUser();
-  const editorRef = useRef<Editor | null>(null);
-  const needCleanUp = useRef(false);
-  const [darkMode] = useDarkMode();
-  const windowWidth = useWindowWidth(500);
-  const tagInputRef = useRef<HTMLInputElement>(null);
-  const [tags, setTags] = useState<string[]>([]);
-  const [uuid] = useState(uuidV4());
-
-  const router = useRouter();
-
-  const isTagDuplicated = (string: string) => tags.find(tag => tag === string);
-
-  const addTag = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputString = e.target.value.trim();
-    if (!inputString.includes(',')) return;
-    const targetIndex = inputString.lastIndexOf(',');
-    const inputTag = inputString.substring(0, targetIndex);
-    if (!isTagDuplicated(inputTag) && inputTag !== '') {
-      setTags(prev => [...prev, inputTag]);
-      e.target.value = '';
-    }
-  };
-
-  const deleteTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const inputElement = tagInputRef.current;
-    if (
-      !(inputElement instanceof HTMLInputElement) ||
-      e.key !== 'Backspace' ||
-      tags.length === 0 ||
-      inputElement.value !== ''
-    )
-      return;
-
-    setTags(prev => prev.slice(0, -1));
-  };
-
-  useEffect(() => {
-    const deleteTempImage = () => {
-      const body: AxiosRequestConfig = {
-        params: {
-          uuid,
-        },
-      };
-      axiosClient.delete('/api/write/image', body);
-    };
-
-    return () => {
-      if (!uuid || !needCleanUp.current) {
-        needCleanUp.current = true;
-        return;
-      }
-      deleteTempImage();
-    };
-  }, [uuid]);
+  const editorRef = useRef<Editor>(null);
+  const [nextStep, setNextStep] = useState(false);
+  const {
+    upload,
+    tag,
+    formAction,
+    thumbnail: { uploadImage, thumbnailPath, deleteThumbnail },
+  } = useWritePost(editorRef);
 
   return (
-    <PortalWrap wrapperId="writePortal">
-      <div
-        className={cls(
-          'absolute top-0 z-[100] h-full w-full',
-          darkMode ? 'dark' : 'light',
-        )}
-      >
-        <form className="h-full w-full bg-l-backgroundColor px-12 py-5 text-text-dark dark:bg-d-backgroundColor dark:text-text-white">
-          <div className="mb-4 w-full border-b-2 border-l-mainColor dark:border-d-mainColor">
-            <input
-              placeholder="제목을 입력하세요"
-              type="text"
-              className="h-20 w-full bg-inherit px-3 text-3xl focus:outline-none"
-            />
-          </div>
-          <div className="mb-3 flex flex-wrap  ">
-            {tags.map((tag, index) => (
-              <WriteTag
-                // eslint-disable-next-line react/no-array-index-key
-                key={`${tag}_${index}`}
-                title={tag}
-                onClick={() => {}}
-              />
-            ))}
-            <input
-              placeholder="태그를 입력하세요"
-              type="text"
-              className="text-md h-8 w-fit bg-inherit px-3 focus:outline-none"
-              onChange={addTag}
-              onKeyDown={deleteTag}
-              ref={tagInputRef}
-            />
-          </div>
-          <EditorWrap
-            previewStyle={windowWidth > 720 ? 'vertical' : 'tab'}
-            initialValue=" "
-            language="ko-kr"
-            height="700px"
-            theme={darkMode ? 'dark' : 'light'}
-            autofocus={false}
-            ref={editorRef}
-            uuid={uuid}
-          />
-          <div className="flex h-16 w-full items-center justify-between">
-            <button type="button" onClick={() => router.back()}>
-              <span className="flex w-fit cursor-pointer">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-3 h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
-                뒤로가기
-              </span>
-            </button>
-            <div className="space-x-4">
-              <button type="button">임시저장</button>
-              <button
-                type="button"
-                className="rounded-lg bg-l-mainColor py-2 px-3 dark:bg-d-mainColor"
-              >
-                저장하기
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </PortalWrap>
+    <>
+      <PostWriteContainer
+        editorRef={editorRef as React.MutableRefObject<Editor>}
+        setNextStep={setNextStep}
+        uploadImage={uploadImage}
+        tag={tag}
+        formAction={formAction}
+      />
+      <PostSaveContainer
+        nextStep={nextStep}
+        setNextStep={setNextStep}
+        editorRef={editorRef as React.MutableRefObject<Editor>}
+        thumbnail={{ uploadImage, thumbnailPath, deleteThumbnail }}
+        formAction={formAction}
+        upload={upload}
+      />
+    </>
   );
 }
 
