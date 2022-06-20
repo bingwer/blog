@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 import React, { useCallback, useEffect } from 'react';
 import path from 'path';
 
@@ -22,14 +23,16 @@ import axiosClient from '@libs/client/axiosClient';
 export interface ToastEditorProps extends EditorProps {
   // eslint-disable-next-line react/require-default-props
   editorRef?: React.MutableRefObject<Editor>;
+  content?: string;
   uploadImage: (
     file: File,
+    type: 'image' | 'thumbnail',
     callback?: ((url: string, flag: string) => void) | undefined,
   ) => Promise<void>;
 }
 
 function ToastEditor(props: ToastEditorProps) {
-  const { editorRef, uploadImage } = props;
+  const { editorRef, uploadImage, content } = props;
 
   useEffect(() => {
     if (!editorRef || !(editorRef && editorRef.current instanceof Editor))
@@ -38,9 +41,10 @@ function ToastEditor(props: ToastEditorProps) {
 
     editor.removeHook('addImageBlobHook');
     editor.addHook('addImageBlobHook', async (file, callback) => {
-      uploadImage(file, callback);
+      await uploadImage(file, 'image', callback);
     });
-  }, [editorRef, uploadImage]);
+    if (content) editor.setHTML(content);
+  }, [editorRef, uploadImage, content]);
 
   return (
     <Editor

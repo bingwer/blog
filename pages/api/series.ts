@@ -9,13 +9,13 @@ export interface CustomSeries {
   url: string;
 }
 
-export interface SeiresReturnType extends ResponseType {
+export interface SeiresResponseType extends ResponseType {
   series: CustomSeries[];
 }
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<SeiresReturnType>,
+  res: NextApiResponse<SeiresResponseType>,
 ) {
   try {
     const series = await prisma.series.findMany({

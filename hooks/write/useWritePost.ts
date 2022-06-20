@@ -1,7 +1,13 @@
 import useMutation from '@hooks/useMutation';
 import { v4 as uuidV4 } from 'uuid';
 import { ResponseType } from '@libs/server/withHandler';
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import path from 'path';
 import {
   useForm,
@@ -59,12 +65,19 @@ export interface ThumbnailType {
   thumbnailPath: string | undefined;
   deleteThumbnail: () => void;
 }
+
+export interface PrivateType {
+  isPrivate: boolean;
+  setIsPrivate: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
 export interface UseWritePostReturnType {
   upload: UploadPostType;
   thumbnail: ThumbnailType;
   tag: UseTagReturnType;
   series: UseSeriesReturnType;
   formAction: WriteFormActionType;
+  isPrivate: PrivateType;
 }
 
 const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
@@ -78,7 +91,13 @@ function useWritePost(
   const needCleanUp = useRef(false);
   const [darkMode] = useDarkMode();
   const [thumbnailPath, setThumbnailPath] = useState<string | undefined>();
-  const [tags, { addTag, deleteTagFromEnd, deleteTagByClick }] = useTags();
+  const [isPrivate, setIsPrivate] = useState(false);
+  const series = useSeries();
+  const {
+    actions: { setSelectedSeries },
+  } = series;
+  const tag = useTags();
+  const [tags, { setTags }] = tag;
   const [uploadPostAPI, { data, loading, error }] =
     useMutation<ResponseType>('/api/write');
   const { register, handleSubmit, getValues, setValue, watch } =
@@ -86,12 +105,12 @@ function useWritePost(
 
   const uploadPost = async (
     formData: WriteFormType,
-    params: { isPrivate: boolean; selectedSeries: number | undefined },
+    params: { selectedSeries: number | undefined },
   ) => {
     if (loading) return;
     const editor = editorRef.current;
     const { title, url, description } = formData;
-    const { isPrivate, selectedSeries } = params;
+    const { selectedSeries } = params;
     if (!editor) return;
 
     const conf = await makeConfirmAlert(
@@ -126,8 +145,15 @@ function useWritePost(
   };
 
   const uploadImage = useCallback(
-    async (file: File, callback?: (url: string, flag: string) => void) => {
-      const uuidFile = new File([file], `${uuid}${path.extname(file.name)}`);
+    async (
+      file: File,
+      type: 'image' | 'thumbnail',
+      callback?: (url: string, flag: string) => void,
+    ) => {
+      const uuidFile = new File(
+        [file],
+        `${post?.uuid || uuid}${path.extname(file.name)}`,
+      );
 
       const body = new FormData();
       body.append('file', uuidFile);
@@ -139,14 +165,15 @@ function useWritePost(
           body,
         );
 
-        setThumbnailPath(filePath);
+        if (type === 'thumbnail' || (type === 'image' && !thumbnailPath))
+          setThumbnailPath(filePath);
 
         if (callback) callback(filePath, 'ImageURL');
       } catch (e) {
         console.error(e);
       }
     },
-    [uuid, setThumbnailPath],
+    [uuid, setThumbnailPath, thumbnailPath, post],
   );
 
   const deleteTempImage = useCallback((postUuid: string) => {
@@ -178,6 +205,28 @@ function useWritePost(
       darkMode,
     );
   }, [darkMode]);
+
+  useEffect(() => {
+    if (post) {
+      const {
+        title,
+        description,
+        Tags,
+        thumbnailPath: thumbnail,
+        url,
+        Series,
+        isPrivate: isPostPrivate,
+      } = post;
+
+      setValue('title', title);
+      setValue('description', description);
+      setValue('url', url);
+      setIsPrivate(isPostPrivate);
+      if (thumbnail) setThumbnailPath(thumbnail);
+      if (Tags.length > 0) setTags(Tags);
+      if (Series) setSelectedSeries(Series);
+    }
+  }, [post, setValue, setTags, setSelectedSeries]);
 
   useEffect(() => {
     return () => {
@@ -212,14 +261,12 @@ function useWritePost(
       uploadImage,
       deleteThumbnail,
     },
-    tag: {
-      tags,
-      actions: {
-        addTag,
-        deleteTagFromEnd,
-        deleteTagByClick,
-      },
+    isPrivate: {
+      isPrivate,
+      setIsPrivate,
     },
+    tag,
+    series,
     formAction: {
       register,
       handleSubmit,

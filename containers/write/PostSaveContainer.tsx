@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import useDarkMode from '@hooks/useDarkMode';
 import PortalWrap from '@libs/client/PortalWrap';
-import { useSeriesReturnType } from '@hooks/write/useSeries';
+import { UseSeriesReturnType } from '@hooks/write/useSeries';
 import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import removeMarkdown from 'markdown-to-text';
@@ -9,19 +9,21 @@ import Image from 'next/image';
 import {
   ThumbnailType,
   UploadPostType,
+  WriteFormType,
   WriteFormActionType,
+  PrivateType,
 } from '@hooks/write/useWritePost';
-import { WriteFormType } from 'pages/write';
 import AddSeriesContainer from './AddSeriesContainer';
 
 interface PostSaveContainerProps {
   nextStep: boolean;
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
   thumbnail: ThumbnailType;
-  series: useSeriesReturnType;
+  series: UseSeriesReturnType;
   editorRef: React.MutableRefObject<Editor>;
   formAction: WriteFormActionType;
   upload: UploadPostType;
+  isPrivate: PrivateType;
 }
 
 // eslint-disable-next-line no-useless-escape
@@ -33,19 +35,19 @@ function PostSaveContainer(props: PostSaveContainerProps) {
     nextStep,
     setNextStep,
     editorRef,
+    series,
     formAction: { register, getValues, handleSubmit, setValue, watch },
     thumbnail: { thumbnailPath, uploadImage, deleteThumbnail },
     upload: { uploadPost, loading },
+    isPrivate: { isPrivate, setIsPrivate },
   } = props;
-  const [isPrivate, setIsPrivate] = useState(false);
   const [openSeriesMenu, setOpenSeriesMenu] = useState(false);
   const [tempThumbnailPath, setTempThumbnailPath] = useState<string>();
-  const series = useSeries();
 
   const uploadThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
     const image = e.target.files?.[0];
     if (!image) return;
-    uploadImage(image);
+    uploadImage(image, 'thumbnail');
   };
 
   const savePost = (data: WriteFormType) => {

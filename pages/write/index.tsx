@@ -15,6 +15,7 @@ function Write() {
     formAction,
     series,
     thumbnail: { uploadImage, thumbnailPath, deleteThumbnail },
+    isPrivate,
   } = useWritePost(editorRef);
 
   return (
@@ -34,6 +35,7 @@ function Write() {
         series={series}
         formAction={formAction}
         upload={upload}
+        isPrivate={isPrivate}
       />
     </>
   );

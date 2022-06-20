@@ -52,6 +52,7 @@ function PostWriteContainer(props: PostWriteContainerProps) {
     formAction: { register },
     tag: [tags, { addTag, deleteTagByClick, deleteTagFromEnd }],
     setNextStep,
+    content,
   } = props;
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [darkMode] = useDarkMode();
@@ -107,6 +108,7 @@ function PostWriteContainer(props: PostWriteContainerProps) {
             theme={darkMode ? 'dark' : 'light'}
             autofocus={false}
             ref={editorRef}
+            content={content}
           />
           <div className="flex h-16 w-full items-center justify-between">
             <button type="button" onClick={() => router.back()}>

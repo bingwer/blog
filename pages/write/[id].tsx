@@ -19,6 +19,7 @@ function PostEdit({ post }: PostEditProps) {
     formAction,
     series,
     thumbnail: { uploadImage, thumbnailPath, deleteThumbnail },
+    isPrivate,
   } = useWritePost(editorRef, post);
 
   return (
@@ -35,6 +36,7 @@ function PostEdit({ post }: PostEditProps) {
         nextStep={nextStep}
         setNextStep={setNextStep}
         series={series}
+        isPrivate={isPrivate}
         editorRef={editorRef as React.MutableRefObject<Editor>}
         thumbnail={{ uploadImage, thumbnailPath, deleteThumbnail }}
         formAction={formAction}
