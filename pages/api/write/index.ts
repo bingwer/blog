@@ -38,7 +38,11 @@ async function handler(
             tag: true,
           },
         },
-        series: true,
+        series: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -46,9 +50,6 @@ async function handler(
       ...post,
       tags: post?.tags.map(tag => {
         return tag.tag.name;
-      }),
-      ...(post?.series && {
-        series: post?.series.id,
       }),
     };
 
@@ -117,7 +118,12 @@ async function handler(
   if (req.method === 'PUT') {
     const { id } = req.body;
     try {
-      console.log(req.body);
+      await prisma.post_Tag.deleteMany({
+        where: {
+          postId: +id,
+        },
+      });
+
       await prisma.post.update({
         where: {
           id: +id,
@@ -132,24 +138,35 @@ async function handler(
           ...(thumbnailPath && { thumbnailPath }),
           ...(tags.length > 0 && {
             tags: {
-              set: tags.map((tagName: string) => {
+              create: tags.map((tagName: string) => {
                 return {
                   tag: {
-                    where: {
-                      name: tagName,
+                    connectOrCreate: {
+                      where: {
+                        name: tagName,
+                      },
+                      create: {
+                        name: tagName,
+                      },
                     },
                   },
                 };
               }),
             },
           }),
-          ...(selectedSeries && {
-            series: {
-              connect: {
-                id: +selectedSeries,
-              },
-            },
-          }),
+          ...(selectedSeries
+            ? {
+                series: {
+                  connect: {
+                    id: +selectedSeries,
+                  },
+                },
+              }
+            : {
+                series: {
+                  disconnect: true,
+                },
+              }),
         },
       });
 

@@ -23,7 +23,7 @@ import { makeAlert, makeConfirmAlert } from '@libs/util';
 import useDarkMode from '@hooks/useDarkMode';
 import { useRouter } from 'next/router';
 import { Editor } from '@toast-ui/react-editor';
-import { Post } from '@prisma/client';
+import { Post, Series } from '@prisma/client';
 import useTags, { UseTagReturnType } from './useTags';
 import useSeries, { UseSeriesReturnType } from './useSeries';
 
@@ -45,7 +45,7 @@ export interface WriteFormActionType {
 
 export interface PostWithTags extends Post {
   tags: string[];
-  series?: number;
+  series?: Series;
 }
 
 export interface UploadPostType {
@@ -113,7 +113,7 @@ function useWritePost(
     formData: WriteFormType,
     params: { selectedSeries: number | undefined },
   ) => {
-    if (loading) return;
+    if (loading || updateLoading) return;
     const editor = editorRef.current;
     const { title, url, description } = formData;
     const { selectedSeries } = params;
@@ -197,22 +197,28 @@ function useWritePost(
     setThumbnailPath(undefined);
   };
 
-  const onSuccess = useCallback(async () => {
-    await makeAlert(
-      { content: '포스트가 등록되었습니다.' },
-      'success',
-      darkMode,
-    );
-    router.replace('/');
-  }, [darkMode, router]);
+  const onSuccess = useCallback(
+    async (flag: string) => {
+      await makeAlert(
+        { content: `포스트가 ${flag}되었습니다.` },
+        'success',
+        darkMode,
+      );
+      router.replace('/');
+    },
+    [darkMode, router],
+  );
 
-  const onError = useCallback(async () => {
-    await makeAlert(
-      { content: '포스트 등록에 실패했습니다.' },
-      'error',
-      darkMode,
-    );
-  }, [darkMode]);
+  const onError = useCallback(
+    async (flag: string) => {
+      await makeAlert(
+        { content: `포스트 ${flag}에 실패했습니다.` },
+        'error',
+        darkMode,
+      );
+    },
+    [darkMode],
+  );
 
   useEffect(() => {
     if (post) {
@@ -232,7 +238,7 @@ function useWritePost(
       setIsPrivate(isPostPrivate);
       if (thumbnail) setThumbnailPath(thumbnail);
       if (postTags && postTags.length > 0) setTags(postTags);
-      if (postSeries) setSelectedSeries(postSeries);
+      if (postSeries) setSelectedSeries(postSeries.id);
       return;
     }
 
@@ -250,17 +256,24 @@ function useWritePost(
   }, [uuid, deleteTempImage]);
 
   useEffect(() => {
-    if ((data && data.ok) || (updateData && updateData.ok)) {
+    if (data && data.ok) {
       needCleanUp.current = false;
-      onSuccess();
+      onSuccess('등록');
+    }
+    if (updateData && updateData.ok) {
+      needCleanUp.current = false;
+      onSuccess('수정');
     }
   }, [data, updateData, onSuccess]);
 
   useEffect(() => {
     if (error) {
-      onError();
+      onError('등록');
     }
-  }, [error, onError]);
+    if (updateError) {
+      onError('수정');
+    }
+  }, [error, updateError, onError]);
 
   return {
     upload: {
