@@ -47,7 +47,9 @@ async function handler(
       tags: post?.tags.map(tag => {
         return tag.tag.name;
       }),
-      series: post?.series.id,
+      ...(post?.series && {
+        series: post?.series.id,
+      }),
     };
 
     res.status(200).json({
@@ -63,51 +65,6 @@ async function handler(
     return;
   }
 
-  if (req.method === 'PUT') {
-    const { id } = req.body;
-    try {
-      console.log(req.body);
-      await prisma.post.update({
-        where: {
-          id: +id,
-        },
-        data: {
-          title,
-          content,
-          description,
-          uuid,
-          url,
-          isPrivate,
-          ...(thumbnailPath && { thumbnailPath }),
-          ...(tags.length > 0 && {
-            Tags: {},
-          }),
-          ...(selectedSeries && {
-            Series: {
-              update: {
-                where: {
-                  postId: +id,
-                },
-                data: {
-                  seriesId: +selectedSeries,
-                },
-              },
-            },
-          }),
-        },
-      });
-
-      res.status(200).json({
-        ok: true,
-      });
-      return;
-    } catch (e: any) {
-      console.log(e);
-      res.status(500).end(e);
-      return;
-    }
-  }
-
   if (req.method === 'POST') {
     try {
       await prisma.post.create({
@@ -120,7 +77,7 @@ async function handler(
           isPrivate,
           ...(thumbnailPath && { thumbnailPath }),
           ...(tags.length > 0 && {
-            Tags: {
+            tags: {
               create: tags.map((tagName: string) => {
                 return {
                   tag: {
@@ -146,6 +103,56 @@ async function handler(
           }),
         },
       });
+      res.status(200).json({
+        ok: true,
+      });
+      return;
+    } catch (e: any) {
+      console.log(e);
+      res.status(500).end(e);
+      return;
+    }
+  }
+
+  if (req.method === 'PUT') {
+    const { id } = req.body;
+    try {
+      console.log(req.body);
+      await prisma.post.update({
+        where: {
+          id: +id,
+        },
+        data: {
+          title,
+          content,
+          description,
+          uuid,
+          url,
+          isPrivate,
+          ...(thumbnailPath && { thumbnailPath }),
+          ...(tags.length > 0 && {
+            tags: {
+              set: tags.map((tagName: string) => {
+                return {
+                  tag: {
+                    where: {
+                      name: tagName,
+                    },
+                  },
+                };
+              }),
+            },
+          }),
+          ...(selectedSeries && {
+            series: {
+              connect: {
+                id: +selectedSeries,
+              },
+            },
+          }),
+        },
+      });
+
       res.status(200).json({
         ok: true,
       });

@@ -7,9 +7,7 @@ import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { WriteFormType } from 'pages/write';
 import React, { forwardRef, useRef } from 'react';
-import { UseFormRegister } from 'react-hook-form';
 import WriteTag from '../../components/write/WriteTag';
 
 const PortalWrap = dynamic(() => import('@libs/client/PortalWrap'), {

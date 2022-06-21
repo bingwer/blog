@@ -233,9 +233,10 @@ function useWritePost(
       if (thumbnail) setThumbnailPath(thumbnail);
       if (postTags && postTags.length > 0) setTags(postTags);
       if (postSeries) setSelectedSeries(postSeries);
-    } else {
-      router.replace('/write');
+      return;
     }
+
+    if (router.pathname !== '/write') router.replace('/write');
   }, [post, setValue, setTags, setSelectedSeries, router]);
 
   useEffect(() => {
@@ -249,11 +250,11 @@ function useWritePost(
   }, [uuid, deleteTempImage]);
 
   useEffect(() => {
-    if (data && data.ok) {
+    if ((data && data.ok) || (updateData && updateData.ok)) {
       needCleanUp.current = false;
       onSuccess();
     }
-  }, [data, onSuccess]);
+  }, [data, updateData, onSuccess]);
 
   useEffect(() => {
     if (error) {
