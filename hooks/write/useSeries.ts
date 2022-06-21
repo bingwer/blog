@@ -31,18 +31,24 @@ export interface UseSeriesReturnType {
   };
 }
 
-function useSeries(): UseSeriesReturnType {
+function useSeries(thumbnailPath: string | undefined): UseSeriesReturnType {
   const [selectedSeries, setSelectedSeries] = useState<number>();
   const { register, setValue, handleSubmit, reset } =
     useForm<AddSeriesFormType>();
   const [darkMode] = useDarkMode();
   const { data: seriesData, mutate } =
     useSWR<SeiresResponseType>('/api/series');
-  const [addSeriesAPI, { data, error }] =
-    useMutation<ResponseType>('/api/write/series');
+  const [addSeriesAPI, { data, error }] = useMutation<ResponseType>(
+    '/api/write/series',
+    'POST',
+  );
 
   const addSeries = (formData: any) => {
-    addSeriesAPI(formData);
+    const body = {
+      ...formData,
+      ...(thumbnailPath && { thumbnailPath }),
+    };
+    addSeriesAPI(body);
   };
 
   const onError = useCallback(async () => {

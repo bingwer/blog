@@ -44,8 +44,8 @@ export interface WriteFormActionType {
 }
 
 export interface PostWithTags extends Post {
-  Tags: string[];
-  Series?: number;
+  tags: string[];
+  series?: number;
 }
 
 export interface UploadPostType {
@@ -92,14 +92,20 @@ function useWritePost(
   const [darkMode] = useDarkMode();
   const [thumbnailPath, setThumbnailPath] = useState<string | undefined>();
   const [isPrivate, setIsPrivate] = useState(false);
-  const series = useSeries();
+  const series = useSeries(thumbnailPath);
   const {
     actions: { setSelectedSeries },
   } = series;
   const tag = useTags();
   const [tags, { setTags }] = tag;
-  const [uploadPostAPI, { data, loading, error }] =
-    useMutation<ResponseType>('/api/write');
+  const [uploadPostAPI, { data, loading, error }] = useMutation<ResponseType>(
+    '/api/write',
+    'POST',
+  );
+  const [
+    updatePostAPI,
+    { data: updateData, loading: updateLoading, error: updateError },
+  ] = useMutation<ResponseType>('/api/write', 'PUT');
   const { register, handleSubmit, getValues, setValue, watch } =
     useForm<WriteFormType>();
 
@@ -130,6 +136,7 @@ function useWritePost(
     }
 
     const body = {
+      ...(post?.id && { id: post.id }),
       title,
       content,
       uuid,
@@ -141,7 +148,8 @@ function useWritePost(
       ...(selectedSeries && { selectedSeries }),
     };
 
-    uploadPostAPI(body);
+    if (!post) uploadPostAPI(body);
+    else updatePostAPI(body);
   };
 
   const uploadImage = useCallback(
@@ -211,10 +219,10 @@ function useWritePost(
       const {
         title,
         description,
-        Tags,
+        tags: postTags,
         thumbnailPath: thumbnail,
         url,
-        Series,
+        series: postSeries,
         isPrivate: isPostPrivate,
       } = post;
 
@@ -223,10 +231,12 @@ function useWritePost(
       setValue('url', url);
       setIsPrivate(isPostPrivate);
       if (thumbnail) setThumbnailPath(thumbnail);
-      if (Tags.length > 0) setTags(Tags);
-      if (Series) setSelectedSeries(Series);
+      if (postTags && postTags.length > 0) setTags(postTags);
+      if (postSeries) setSelectedSeries(postSeries);
+    } else {
+      router.replace('/write');
     }
-  }, [post, setValue, setTags, setSelectedSeries]);
+  }, [post, setValue, setTags, setSelectedSeries, router]);
 
   useEffect(() => {
     return () => {

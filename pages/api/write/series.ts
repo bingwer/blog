@@ -7,7 +7,7 @@ async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseType>,
 ) {
-  const { seriesName: name, seriesURL: url } = req.body;
+  const { seriesName: name, seriesURL: url, thumbnailPath } = req.body;
 
   if (!name || !url) {
     res.status(500).end();
@@ -20,6 +20,7 @@ async function handler(
         data: {
           name,
           url,
+          ...(thumbnailPath && { thumbnailPath }),
         },
       });
 

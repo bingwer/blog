@@ -13,7 +13,7 @@ interface LoginForm {
 function Login() {
   const router = useRouter();
   const [login, { data, loading, error: loginError }] =
-    useMutation<ResponseType>('/api/auth/login');
+    useMutation<ResponseType>('/api/auth/login', 'POST');
 
   const { mutate } = useUser();
 

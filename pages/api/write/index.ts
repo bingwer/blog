@@ -5,7 +5,7 @@ import { prisma } from '@libs/server/prismaClient';
 import { Post } from '@prisma/client';
 
 export interface PostResponseType extends ResponseType {
-  post?: Post | {};
+  post?: Post | {} | null;
 }
 
 const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
@@ -26,42 +26,33 @@ async function handler(
     selectedSeries,
   } = req.body;
 
-  const { id } = req.query;
-
   if (req.method === 'GET') {
+    const { id } = req.query;
     const post = await prisma.post.findUnique({
       where: {
         id: +id,
       },
       include: {
-        Tags: {
+        tags: {
           select: {
             tag: true,
           },
         },
-        Series: {
-          select: {
-            series: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
+        series: true,
       },
     });
 
     const postWithTags = {
       ...post,
-      Tags: post?.Tags.map(tag => {
+      tags: post?.tags.map(tag => {
         return tag.tag.name;
       }),
-      Series: post?.Series[0]?.series.id,
+      series: post?.series.id,
     };
 
     res.status(200).json({
       ok: true,
-      post: postWithTags || {},
+      post: post ? postWithTags : null,
     });
 
     return;
@@ -73,12 +64,9 @@ async function handler(
   }
 
   if (req.method === 'PUT') {
-    if (!title || !content || content === toastEditorEmptyString) {
-      res.status(500).end();
-      return;
-    }
-
+    const { id } = req.body;
     try {
+      console.log(req.body);
       await prisma.post.update({
         where: {
           id: +id,
@@ -92,30 +80,16 @@ async function handler(
           isPrivate,
           ...(thumbnailPath && { thumbnailPath }),
           ...(tags.length > 0 && {
-            Tags: {
-              update: tags.map((tagName: string) => {
-                return {
-                  tag: {
-                    connectOrCreate: {
-                      where: {
-                        name: tagName,
-                      },
-                      create: {
-                        name: tagName,
-                      },
-                    },
-                  },
-                };
-              }),
-            },
+            Tags: {},
           }),
           ...(selectedSeries && {
             Series: {
               update: {
-                series: {
-                  connect: {
-                    id: +selectedSeries,
-                  },
+                where: {
+                  postId: +id,
+                },
+                data: {
+                  seriesId: +selectedSeries,
                 },
               },
             },
@@ -164,13 +138,9 @@ async function handler(
             },
           }),
           ...(selectedSeries && {
-            Series: {
-              create: {
-                series: {
-                  connect: {
-                    id: +selectedSeries,
-                  },
-                },
+            series: {
+              connect: {
+                id: +selectedSeries,
               },
             },
           }),

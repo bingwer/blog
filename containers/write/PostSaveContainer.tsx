@@ -84,7 +84,7 @@ function PostSaveContainer(props: PostSaveContainerProps) {
           nextStep ? 'z-[100] h-auto' : 'z-[99] h-0',
         )}
       >
-        <div className="flex min-h-screen w-full items-center justify-center bg-l-backgroundColor px-12 text-text-dark dark:bg-d-backgroundColor dark:text-text-white">
+        <div className="flex min-h-screen w-full items-center justify-center bg-l-backgroundColor px-12 py-12 text-text-dark dark:bg-d-backgroundColor dark:text-text-white md:py-0">
           <div className="flex flex-col items-center justify-center space-y-5 md:flex-row md:space-y-0 md:space-x-5">
             <section className="h-96 w-96 px-6">
               <div className="flex h-full w-full flex-col justify-between">
