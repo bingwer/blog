@@ -19,29 +19,51 @@ model User {
 }
 
 model Post {
-  id            Int        @id @unique @default(autoincrement())
-  uuid          String     @unique
-  url           String     @unique
+  id             Int             @id @unique @default(autoincrement())
+  uuid           String          @unique
+  url            String          @unique
+  title          String
+  description    String
+  thumbnailPath  String?
+  content        String          @db.MediumText
+  isPrivate      Boolean
+  hit            Int?            @default(0)
+  like           Int?            @default(0)
+  shared         Int?            @default(0)
+  tags           Post_Tag[]
+  series         Series?         @relation(fields: [seriesId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  seriesId       Int?
+  createdAt      DateTime        @default(now())
+  updateAt       DateTime        @updatedAt
+  tempPostedPost TempPostedPost?
+}
+
+model TempPostedPost {
+  id            Int     @id @unique @default(autoincrement())
+  uuid          String  @unique
+  url           String  @unique
   title         String
   description   String
   thumbnailPath String?
-  content       String     @db.MediumText
+  content       String  @db.MediumText
   isPrivate     Boolean
-  hit           Int?       @default(0)
-  like          Int?       @default(0)
-  shared        Int?       @default(0)
-  tags          Post_Tag[]
-  series        Series?    @relation(fields: [seriesId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  seriesId      Int?
+  hit           Int?    @default(0)
+  like          Int?    @default(0)
+  shared        Int?    @default(0)
+  tags          String?
+  series        Int?
+  Post          Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId        Int     @unique
 }
 
 model TempPost {
-  id            Int     @id @unique @default(autoincrement())
-  uuid          String  @unique
+  id            Int      @id @unique @default(autoincrement())
+  uuid          String   @unique
   title         String
-  content       String  @db.MediumText
+  content       String   @db.MediumText
   thumbnailPath String?
   tags          String?
+  createdAt     DateTime @default(now())
 }
 
 model Tag {

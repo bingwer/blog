@@ -8,9 +8,11 @@ import React, { useRef, useState } from 'react';
 
 interface PostEditProps {
   post: PostWithTags;
+  // eslint-disable-next-line react/require-default-props
+  postType?: 'temp';
 }
 
-function PostEdit({ post }: PostEditProps) {
+function PostEdit({ post, postType }: PostEditProps) {
   const editorRef = useRef<Editor>(null);
   const [nextStep, setNextStep] = useState(false);
   const {
@@ -20,7 +22,7 @@ function PostEdit({ post }: PostEditProps) {
     series,
     thumbnail: { uploadImage, thumbnailPath, deleteThumbnail },
     isPrivate,
-  } = useWritePost(editorRef, post);
+  } = useWritePost(editorRef, post, postType);
 
   return (
     <>
@@ -31,6 +33,7 @@ function PostEdit({ post }: PostEditProps) {
         tag={tag}
         formAction={formAction}
         content={post?.content}
+        uploadTempPost={upload.uploadTempPost}
       />
       <PostSaveContainer
         nextStep={nextStep}
@@ -53,11 +56,21 @@ export const getServerSideProps: GetServerSideProps = async context => {
     query: { id },
   } = context;
 
+  if (!id)
+    return {
+      props: {
+        post: undefined,
+      },
+    };
+
+  const param =
+    id && id.length > 1 ? `type=${id[0]}&id=${id[1]}` : `id=${id[0]}`;
+
   const {
     data: { post },
-  } = await axiosClient.get(`http://localhost:3000/api/write?id=${id}`);
+  } = await axiosClient.get(`http://localhost:3000/api/write?${param}`);
 
   return {
-    props: { post },
+    props: { post, ...(id.length > 1 && { postType: id[0] }) },
   };
 };

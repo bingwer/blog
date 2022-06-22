@@ -1,8 +1,9 @@
+/* eslint-disable react/require-default-props */
 import { ToastEditorProps } from '@components/write/ToastEditor';
 import useDarkMode from '@hooks/useDarkMode';
 import useWindowWidth from '@hooks/useWindowWidth';
 import { UseTagReturnType } from '@hooks/write/useTags';
-import { WriteFormActionType } from '@hooks/write/useWritePost';
+import { WriteFormActionType, WriteFormType } from '@hooks/write/useWritePost';
 import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import dynamic from 'next/dynamic';
@@ -39,18 +40,19 @@ interface PostWriteContainerProps {
   tag: UseTagReturnType;
   formAction: WriteFormActionType;
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
-  // eslint-disable-next-line react/require-default-props
   content?: string;
+  uploadTempPost: (FormData: WriteFormType) => Promise<void>;
 }
 
 function PostWriteContainer(props: PostWriteContainerProps) {
   const {
     editorRef,
     uploadImage,
-    formAction: { register },
+    formAction: { register, handleSubmit },
     tag: [tags, { addTag, deleteTagByClick, deleteTagFromEnd }],
     setNextStep,
     content,
+    uploadTempPost,
   } = props;
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [darkMode] = useDarkMode();
@@ -129,7 +131,9 @@ function PostWriteContainer(props: PostWriteContainerProps) {
               </span>
             </button>
             <div className="space-x-4">
-              <button type="button">임시저장</button>
+              <button type="button" onClick={handleSubmit(uploadTempPost)}>
+                임시저장
+              </button>
               <button
                 type="button"
                 className="rounded-lg bg-l-mainColor py-2 px-3 dark:bg-d-mainColor"

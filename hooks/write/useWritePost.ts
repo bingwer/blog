@@ -53,6 +53,7 @@ export interface UploadPostType {
     FormData: WriteFormType,
     options: { isPrivate: boolean; selectedSeries: undefined | number },
   ) => Promise<void>;
+  uploadTempPost: (FormData: WriteFormType) => Promise<void>;
   loading: boolean;
 }
 
@@ -85,6 +86,7 @@ const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
 function useWritePost(
   editorRef: RefObject<Editor>,
   post?: PostWithTags,
+  postType?: 'temp',
 ): UseWritePostReturnType {
   const router = useRouter();
   const [uuid] = useState(uuidV4());
@@ -109,6 +111,15 @@ function useWritePost(
   const { register, handleSubmit, getValues, setValue, watch } =
     useForm<WriteFormType>();
 
+  const [
+    uploadTempPostAPI,
+    {
+      data: uploadTempData,
+      loading: uploadTempLoading,
+      error: uploadTempError,
+    },
+  ] = useMutation<ResponseType>('/api/write/temp', 'POST');
+
   const uploadPost = async (
     formData: WriteFormType,
     params: { selectedSeries: number | undefined },
@@ -121,7 +132,7 @@ function useWritePost(
 
     const conf = await makeConfirmAlert(
       {
-        content: '포스트를 등록하시겠어요?',
+        content: `포스트를 ${post ? '수정' : '등록'}하시겠어요?`,
       },
       darkMode,
     );
@@ -139,17 +150,51 @@ function useWritePost(
       ...(post?.id && { id: post.id }),
       title,
       content,
-      uuid,
+      ...{ uuid: post?.uuid ? post.uuid : uuid },
       ...(thumbnailPath && { thumbnailPath }),
       tags,
       url,
       description,
       isPrivate,
       ...(selectedSeries && { selectedSeries }),
+      ...(postType && { postType }),
     };
 
     if (!post) uploadPostAPI(body);
     else updatePostAPI(body);
+  };
+
+  const uploadTempPost = async (formData: WriteFormType) => {
+    if (uploadTempLoading) return;
+    const editor = editorRef.current;
+    const { title } = formData;
+    if (!editor) return;
+
+    const conf = await makeConfirmAlert(
+      {
+        content: `포스트를 임시저장 하시겠어요?`,
+      },
+      darkMode,
+    );
+
+    if (!conf) return;
+
+    const content = editor.getInstance().getHTML();
+    if (content === toastEditorEmptyString) {
+      makeAlert({ content: '글 내용이 없습니다.' }, 'error', darkMode);
+      return;
+    }
+
+    const body = {
+      ...(post?.id && { id: post.id }),
+      title,
+      content,
+      ...{ uuid: post?.uuid ? post.uuid : uuid },
+      ...(thumbnailPath && { thumbnailPath }),
+      tags: tags.join(','),
+    };
+
+    uploadTempPostAPI(body);
   };
 
   const uploadImage = useCallback(
@@ -233,9 +278,9 @@ function useWritePost(
       } = post;
 
       setValue('title', title);
-      setValue('description', description);
-      setValue('url', url);
-      setIsPrivate(isPostPrivate);
+      if (description) setValue('description', description);
+      if (url) setValue('url', url);
+      if (isPostPrivate !== undefined) setIsPrivate(isPostPrivate);
       if (thumbnail) setThumbnailPath(thumbnail);
       if (postTags && postTags.length > 0) setTags(postTags);
       if (postSeries) setSelectedSeries(postSeries.id);
@@ -264,7 +309,12 @@ function useWritePost(
       needCleanUp.current = false;
       onSuccess('수정');
     }
-  }, [data, updateData, onSuccess]);
+
+    if (uploadTempData && uploadTempData.ok) {
+      needCleanUp.current = false;
+      onSuccess('임시저장');
+    }
+  }, [data, updateData, onSuccess, uploadTempData]);
 
   useEffect(() => {
     if (error) {
@@ -273,11 +323,15 @@ function useWritePost(
     if (updateError) {
       onError('수정');
     }
-  }, [error, updateError, onError]);
+    if (uploadTempError) {
+      onError('임시저장');
+    }
+  }, [error, updateError, onError, uploadTempError]);
 
   return {
     upload: {
       uploadPost,
+      uploadTempPost,
       loading,
     },
     thumbnail: {

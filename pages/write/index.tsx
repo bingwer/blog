@@ -17,6 +17,7 @@ function Write() {
     thumbnail: { uploadImage, thumbnailPath, deleteThumbnail },
     isPrivate,
   } = useWritePost(editorRef);
+  const { uploadTempPost } = upload;
 
   return (
     <>
@@ -26,6 +27,7 @@ function Write() {
         uploadImage={uploadImage}
         tag={tag}
         formAction={formAction}
+        uploadTempPost={uploadTempPost}
       />
       <PostSaveContainer
         nextStep={nextStep}
