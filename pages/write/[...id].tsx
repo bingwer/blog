@@ -23,6 +23,7 @@ function PostEdit({ post, postType }: PostEditProps) {
     thumbnail: { uploadImage, thumbnailPath, deleteThumbnail },
     isPrivate,
   } = useWritePost(editorRef, post, postType);
+  const { uploadTempPost } = upload;
 
   return (
     <>
@@ -33,7 +34,7 @@ function PostEdit({ post, postType }: PostEditProps) {
         tag={tag}
         formAction={formAction}
         content={post?.content}
-        uploadTempPost={upload.uploadTempPost}
+        uploadTempPost={uploadTempPost}
       />
       <PostSaveContainer
         nextStep={nextStep}

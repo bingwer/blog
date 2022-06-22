@@ -130,9 +130,19 @@ function useWritePost(
     const { selectedSeries } = params;
     if (!editor) return;
 
+    let altText = '';
+
+    if (post && postType === 'temp') {
+      altText = '등록';
+    } else if (post && postType !== 'temp') {
+      altText = '수정';
+    } else {
+      altText = '등록';
+    }
+
     const conf = await makeConfirmAlert(
       {
-        content: `포스트를 ${post ? '수정' : '등록'}하시겠어요?`,
+        content: `포스트를 ${altText}하시겠어요?`,
       },
       darkMode,
     );
@@ -160,8 +170,13 @@ function useWritePost(
       ...(postType && { postType }),
     };
 
-    if (!post) uploadPostAPI(body);
-    else updatePostAPI(body);
+    if (post && postType === 'temp') {
+      uploadPostAPI(body);
+    } else if (post && postType !== 'temp') {
+      updatePostAPI(body);
+    } else {
+      uploadPostAPI(body);
+    }
   };
 
   const uploadTempPost = async (formData: WriteFormType) => {

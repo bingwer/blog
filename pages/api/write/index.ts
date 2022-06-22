@@ -2,10 +2,10 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import withHandler, { ResponseType } from '@libs/server/withHandler';
 import withSession from '@libs/server/withSession';
 import { prisma } from '@libs/server/prismaClient';
-import { Post } from '@prisma/client';
+import { Post, Tag, TempPost } from '@prisma/client';
 
 export interface PostResponseType extends ResponseType {
-  post?: Post | {} | null;
+  post?: Post | TempPost | {} | null;
 }
 
 const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
@@ -15,6 +15,7 @@ async function handler(
   res: NextApiResponse<PostResponseType>,
 ) {
   const {
+    id: PostId,
     title,
     content,
     thumbnailPath,
@@ -24,10 +25,31 @@ async function handler(
     url,
     isPrivate,
     selectedSeries,
+    postType,
   } = req.body;
 
   if (req.method === 'GET') {
-    const { id } = req.query;
+    const { id, type } = req.query;
+
+    if (type === 'temp') {
+      const post = await prisma.tempPost.findUnique({
+        where: {
+          id: +id,
+        },
+      });
+
+      const postWithTags = {
+        ...post,
+        tags: post?.tags?.split(','),
+      };
+
+      res.status(200).json({
+        ok: true,
+        post: post ? postWithTags : null,
+      });
+      return;
+    }
+
     const post = await prisma.post.findUnique({
       where: {
         id: +id,
@@ -48,8 +70,8 @@ async function handler(
 
     const postWithTags = {
       ...post,
-      tags: post?.tags.map(tag => {
-        return tag.tag.name;
+      tags: post?.tags.map(({ tag }: { tag: Tag }) => {
+        return tag.name;
       }),
     };
 
@@ -104,6 +126,15 @@ async function handler(
           }),
         },
       });
+
+      if (postType) {
+        await prisma.tempPost.delete({
+          where: {
+            id: +PostId,
+          },
+        });
+      }
+
       res.status(200).json({
         ok: true,
       });
