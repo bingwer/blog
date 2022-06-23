@@ -4,7 +4,7 @@ export interface ResponseType {
   ok: boolean;
 }
 
-type methods = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 interface WithHandlerProps {
   methods: methods[];

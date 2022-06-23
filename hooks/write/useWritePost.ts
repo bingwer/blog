@@ -23,7 +23,7 @@ import { makeAlert, makeConfirmAlert } from '@libs/util';
 import useDarkMode from '@hooks/useDarkMode';
 import { useRouter } from 'next/router';
 import { Editor } from '@toast-ui/react-editor';
-import { Post, Series } from '@prisma/client';
+import { Post, Series, TempPostedPost } from '@prisma/client';
 import useTags, { UseTagReturnType } from './useTags';
 import useSeries, { UseSeriesReturnType } from './useSeries';
 
@@ -46,6 +46,8 @@ export interface WriteFormActionType {
 export interface PostWithTags extends Post {
   tags: string[];
   series?: Series;
+  tempPostedPost?: TempPostedPost;
+  postId?: number;
 }
 
 export interface UploadPostType {
@@ -86,7 +88,7 @@ const toastEditorEmptyString = '<p><br class="ProseMirror-trailingBreak"></p>';
 function useWritePost(
   editorRef: RefObject<Editor>,
   post?: PostWithTags,
-  postType?: 'temp',
+  postType?: 'temp' | 'posted',
 ): UseWritePostReturnType {
   const router = useRouter();
   const [uuid] = useState(uuidV4());
@@ -120,6 +122,15 @@ function useWritePost(
       error: uploadTempError,
     },
   ] = useMutation<ResponseType>('/api/write/temp', 'POST');
+
+  const [
+    uploadPostedAPI,
+    {
+      data: uploadPostedData,
+      loading: uploadPostedLoading,
+      error: uploadPostedError,
+    },
+  ] = useMutation<ResponseType>('/api/write', 'PATCH');
 
   const [
     updateTempPostAPI,
@@ -167,7 +178,9 @@ function useWritePost(
     }
 
     const body = {
-      ...(post?.id && { id: post.id }),
+      ...(post?.id && {
+        id: postType === 'posted' ? post.postId : post.id,
+      }),
       title,
       content,
       ...{ uuid: post?.uuid ? post.uuid : uuid },
@@ -190,7 +203,7 @@ function useWritePost(
   };
 
   const uploadTempPost = async (formData: WriteFormType) => {
-    if (uploadTempLoading) return;
+    if (uploadTempLoading || uploadPostedLoading || updateTempLoading) return;
     const editor = editorRef.current;
     const { title } = formData;
     if (!editor) return;
@@ -221,6 +234,21 @@ function useWritePost(
     if (post && postType === 'temp') {
       updateTempPostAPI(body);
     } else if (post && postType !== 'temp') {
+      const { title: postTitle, url, description } = formData;
+      const { selectedSeries } = series;
+      const tempPostedBody = {
+        id: post.postId ? post.postId : post.id,
+        title: postTitle,
+        content,
+        ...{ uuid: post?.uuid ? post.uuid : uuid },
+        ...(thumbnailPath && { thumbnailPath }),
+        tags,
+        url,
+        description,
+        isPrivate,
+        ...(selectedSeries && { selectedSeries }),
+      };
+      uploadPostedAPI(tempPostedBody);
       // 이미 저장된 글  임시저장 로직
     } else {
       uploadTempPostAPI(body);
@@ -316,7 +344,7 @@ function useWritePost(
       if (description) setValue('description', description);
       if (url) setValue('url', url);
       if (isPostPrivate !== undefined) setIsPrivate(isPostPrivate);
-      if (thumbnail) setThumbnailPath(thumbnail);
+      setThumbnailPath(thumbnail || undefined);
       if (postTags && postTags.length > 0) setTags(postTags);
       if (postSeries) setSelectedSeries(postSeries.id);
       return;
@@ -347,12 +375,20 @@ function useWritePost(
 
     if (
       (uploadTempData && uploadTempData.ok) ||
-      (updateTempData && updateTempData.ok)
+      (updateTempData && updateTempData.ok) ||
+      (uploadPostedData && uploadPostedData.ok)
     ) {
       needCleanUp.current = false;
       onSuccess('임시저장');
     }
-  }, [data, updateData, onSuccess, uploadTempData, updateTempData]);
+  }, [
+    data,
+    updateData,
+    onSuccess,
+    uploadTempData,
+    updateTempData,
+    uploadPostedData,
+  ]);
 
   useEffect(() => {
     if (error) {
@@ -361,13 +397,21 @@ function useWritePost(
     if (updateError) {
       onError('수정');
     }
-    if (uploadTempError || updateTempError) {
+    if (uploadTempError || updateTempError || uploadPostedError) {
       onError('임시저장');
     }
-  }, [error, updateError, onError, uploadTempError, updateTempError]);
+  }, [
+    error,
+    updateError,
+    onError,
+    uploadTempError,
+    updateTempError,
+    uploadPostedError,
+  ]);
 
   useEffect(() => {
     if (thumbnailPath) needThumnailUpdate.current = false;
+    else needThumnailUpdate.current = true;
   }, [thumbnailPath]);
 
   return {
