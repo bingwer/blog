@@ -17,8 +17,6 @@ import 'tui-color-picker/dist/tui-color-picker.css';
 import '@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css';
 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { ResponseType } from '@libs/server/withHandler';
-import axiosClient from '@libs/client/axiosClient';
 
 export interface ToastEditorProps extends EditorProps {
   // eslint-disable-next-line react/require-default-props
@@ -34,17 +32,26 @@ export interface ToastEditorProps extends EditorProps {
 function ToastEditor(props: ToastEditorProps) {
   const { editorRef, uploadImage, content } = props;
 
+  const addImage = useCallback(
+    async (file: File, callback: any) => {
+      if (!editorRef || !(editorRef && editorRef.current instanceof Editor))
+        return;
+      await uploadImage(file, 'image', callback);
+    },
+    [uploadImage, editorRef],
+  );
+
   useEffect(() => {
     if (!editorRef || !(editorRef && editorRef.current instanceof Editor))
       return;
     const editor = editorRef.current.getInstance();
 
+    if (!editor) return;
+
     editor.removeHook('addImageBlobHook');
-    editor.addHook('addImageBlobHook', async (file, callback) => {
-      await uploadImage(file, 'image', callback);
-    });
+    editor.addHook('addImageBlobHook', addImage);
     if (content) editor.setHTML(content);
-  }, [editorRef, uploadImage, content]);
+  }, [editorRef, uploadImage, content, addImage]);
 
   return (
     <Editor

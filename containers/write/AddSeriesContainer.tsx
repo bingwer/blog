@@ -1,11 +1,11 @@
-import { useSeriesReturnType } from '@hooks/write/useSeries';
+import { UseSeriesReturnType } from '@hooks/write/useSeries';
 import { cls } from '@libs/util';
 import React, { useState } from 'react';
 import OutsideClickHandler from 'react-outside-click-handler';
 
 interface AddSeriesContainerProps {
   setOpenSeriesMenu: React.Dispatch<React.SetStateAction<boolean>>;
-  series: useSeriesReturnType;
+  series: UseSeriesReturnType;
 }
 
 function AddSeriesContainer(props: AddSeriesContainerProps) {

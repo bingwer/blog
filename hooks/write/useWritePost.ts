@@ -91,6 +91,7 @@ function useWritePost(
   const router = useRouter();
   const [uuid] = useState(uuidV4());
   const needCleanUp = useRef(false);
+  const needThumnailUpdate = useRef(true);
   const [darkMode] = useDarkMode();
   const [thumbnailPath, setThumbnailPath] = useState<string | undefined>();
   const [isPrivate, setIsPrivate] = useState(false);
@@ -119,6 +120,15 @@ function useWritePost(
       error: uploadTempError,
     },
   ] = useMutation<ResponseType>('/api/write/temp', 'POST');
+
+  const [
+    updateTempPostAPI,
+    {
+      data: updateTempData,
+      loading: updateTempLoading,
+      error: updateTempError,
+    },
+  ] = useMutation<ResponseType>('/api/write/temp', 'PUT');
 
   const uploadPost = async (
     formData: WriteFormType,
@@ -208,8 +218,13 @@ function useWritePost(
       ...(thumbnailPath && { thumbnailPath }),
       tags: tags.join(','),
     };
-
-    uploadTempPostAPI(body);
+    if (post && postType === 'temp') {
+      updateTempPostAPI(body);
+    } else if (post && postType !== 'temp') {
+      // 이미 저장된 글  임시저장 로직
+    } else {
+      uploadTempPostAPI(body);
+    }
   };
 
   const uploadImage = useCallback(
@@ -233,15 +248,20 @@ function useWritePost(
           body,
         );
 
-        if (type === 'thumbnail' || (type === 'image' && !thumbnailPath))
-          setThumbnailPath(filePath);
+        if (callback) {
+          callback(filePath, 'ImageURL');
+        }
 
-        if (callback) callback(filePath, 'ImageURL');
+        if (
+          type === 'thumbnail' ||
+          (type === 'image' && needThumnailUpdate.current)
+        )
+          setThumbnailPath(filePath);
       } catch (e) {
         console.error(e);
       }
     },
-    [uuid, setThumbnailPath, thumbnailPath, post],
+    [uuid, setThumbnailPath, post],
   );
 
   const deleteTempImage = useCallback((postUuid: string) => {
@@ -325,11 +345,14 @@ function useWritePost(
       onSuccess('수정');
     }
 
-    if (uploadTempData && uploadTempData.ok) {
+    if (
+      (uploadTempData && uploadTempData.ok) ||
+      (updateTempData && updateTempData.ok)
+    ) {
       needCleanUp.current = false;
       onSuccess('임시저장');
     }
-  }, [data, updateData, onSuccess, uploadTempData]);
+  }, [data, updateData, onSuccess, uploadTempData, updateTempData]);
 
   useEffect(() => {
     if (error) {
@@ -338,10 +361,14 @@ function useWritePost(
     if (updateError) {
       onError('수정');
     }
-    if (uploadTempError) {
+    if (uploadTempError || updateTempError) {
       onError('임시저장');
     }
-  }, [error, updateError, onError, uploadTempError]);
+  }, [error, updateError, onError, uploadTempError, updateTempError]);
+
+  useEffect(() => {
+    if (thumbnailPath) needThumnailUpdate.current = false;
+  }, [thumbnailPath]);
 
   return {
     upload: {
