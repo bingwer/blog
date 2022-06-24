@@ -1,48 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import useDarkMode from '@hooks/useDarkMode';
 import PortalWrap from '@libs/client/PortalWrap';
-import useSeries from '@hooks/write/useSeries';
+import { UseSeriesReturnType } from '@hooks/write/useSeries';
 import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import removeMarkdown from 'markdown-to-text';
 import Image from 'next/image';
 import {
-  UseFormGetValues,
-  UseFormHandleSubmit,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
-import { WriteFormType } from 'pages/write';
+  ThumbnailType,
+  UploadPostType,
+  WriteFormType,
+  WriteFormActionType,
+  PrivateType,
+} from '@hooks/write/useWritePost';
 import AddSeriesContainer from './AddSeriesContainer';
 
 interface PostSaveContainerProps {
   nextStep: boolean;
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
-  thumbnail: {
-    uploadImage: (
-      file: File,
-      callback?: ((url: string, flag: string) => void) | undefined,
-    ) => Promise<void>;
-    thumbnailPath: string | undefined;
-    deleteThumbnail: () => void;
-  };
-
+  thumbnail: ThumbnailType;
+  series: UseSeriesReturnType;
   editorRef: React.MutableRefObject<Editor>;
-  formAction: {
-    getValues: UseFormGetValues<WriteFormType>;
-    register: UseFormRegister<WriteFormType>;
-    handleSubmit: UseFormHandleSubmit<WriteFormType>;
-    setValue: UseFormSetValue<WriteFormType>;
-    watch: UseFormWatch<WriteFormType>;
-  };
-  upload: {
-    uploadPost: (
-      FormData: WriteFormType,
-      options: { isPrivate: boolean; selectedSeries: undefined | number },
-    ) => Promise<void>;
-    loading: boolean;
-  };
+  formAction: WriteFormActionType;
+  upload: UploadPostType;
+  isPrivate: PrivateType;
 }
 
 // eslint-disable-next-line no-useless-escape
@@ -54,19 +35,19 @@ function PostSaveContainer(props: PostSaveContainerProps) {
     nextStep,
     setNextStep,
     editorRef,
+    series,
     formAction: { register, getValues, handleSubmit, setValue, watch },
     thumbnail: { thumbnailPath, uploadImage, deleteThumbnail },
     upload: { uploadPost, loading },
+    isPrivate: { isPrivate, setIsPrivate },
   } = props;
-  const [isPrivate, setIsPrivate] = useState(false);
   const [openSeriesMenu, setOpenSeriesMenu] = useState(false);
   const [tempThumbnailPath, setTempThumbnailPath] = useState<string>();
-  const series = useSeries();
 
   const uploadThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
     const image = e.target.files?.[0];
     if (!image) return;
-    uploadImage(image);
+    uploadImage(image, 'thumbnail');
   };
 
   const savePost = (data: WriteFormType) => {
@@ -103,7 +84,7 @@ function PostSaveContainer(props: PostSaveContainerProps) {
           nextStep ? 'z-[100] h-auto' : 'z-[99] h-0',
         )}
       >
-        <div className="flex min-h-screen w-full items-center justify-center bg-l-backgroundColor px-12 text-text-dark dark:bg-d-backgroundColor dark:text-text-white">
+        <div className="flex min-h-screen w-full items-center justify-center bg-l-backgroundColor px-12 py-12 text-text-dark dark:bg-d-backgroundColor dark:text-text-white md:py-0">
           <div className="flex flex-col items-center justify-center space-y-5 md:flex-row md:space-y-0 md:space-x-5">
             <section className="h-96 w-96 px-6">
               <div className="flex h-full w-full flex-col justify-between">

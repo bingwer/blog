@@ -10,7 +10,10 @@ interface UseMutationState<T> {
 
 type useMutationResult<T> = [(data: any) => void, UseMutationState<T>];
 
-function useMutation<T = any>(url: string): useMutationResult<T> {
+function useMutation<T = any>(
+  url: string,
+  flag: 'POST' | 'PUT' | 'PATCH',
+): useMutationResult<T> {
   const [result, setResult] = useState<UseMutationState<T>>({
     loading: false,
     data: undefined,
@@ -20,12 +23,15 @@ function useMutation<T = any>(url: string): useMutationResult<T> {
   async function mutation(data: any) {
     setResult(prevResult => ({ ...prevResult, loading: true }));
 
+    const method = flag.toLowerCase() as 'post' | 'put' | 'patch';
+
     try {
-      const { data: resData } = await axiosClient.post(url, data, {
+      const { data: resData } = await axiosClient[method](url, data, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
+
       setResult(prevResult => ({ ...prevResult, data: resData }));
     } catch (e: any | AxiosError) {
       setResult(prevResult => ({ ...prevResult, error: e }));

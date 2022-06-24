@@ -1,31 +1,11 @@
-import { AddSeriesFormType } from '@hooks/write/useSeries';
+import { UseSeriesReturnType } from '@hooks/write/useSeries';
 import { cls } from '@libs/util';
-import { CustomSeries } from 'pages/api/series';
 import React, { useState } from 'react';
-import {
-  UseFormHandleSubmit,
-  UseFormRegister,
-  UseFormSetValue,
-} from 'react-hook-form';
 import OutsideClickHandler from 'react-outside-click-handler';
 
 interface AddSeriesContainerProps {
   setOpenSeriesMenu: React.Dispatch<React.SetStateAction<boolean>>;
-  series: {
-    selectedSeries: number | undefined;
-    seriesList: CustomSeries[] | undefined;
-    actions: {
-      addSeries: (data: any) => void;
-      setSelectedSeries: React.Dispatch<
-        React.SetStateAction<number | undefined>
-      >;
-    };
-    formActions: {
-      register: UseFormRegister<AddSeriesFormType>;
-      setValue: UseFormSetValue<AddSeriesFormType>;
-      handleSubmit: UseFormHandleSubmit<AddSeriesFormType>;
-    };
-  };
+  series: UseSeriesReturnType;
 }
 
 function AddSeriesContainer(props: AddSeriesContainerProps) {

@@ -2,9 +2,14 @@ import useDarkMode from '@hooks/useDarkMode';
 import useMutation from '@hooks/useMutation';
 import { ResponseType } from '@libs/server/withHandler';
 import { makeAlert } from '@libs/util';
-import { SeiresReturnType } from 'pages/api/series';
+import { CustomSeries, SeiresResponseType } from 'pages/api/series';
 import { useCallback, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import {
+  useForm,
+  UseFormHandleSubmit,
+  UseFormRegister,
+  UseFormSetValue,
+} from 'react-hook-form';
 import useSWR from 'swr';
 
 export interface AddSeriesFormType {
@@ -12,17 +17,38 @@ export interface AddSeriesFormType {
   seriesURL: string;
 }
 
-function useSeries() {
+export interface UseSeriesReturnType {
+  selectedSeries: number | undefined;
+  seriesList: CustomSeries[] | undefined;
+  actions: {
+    addSeries: (data: any) => void;
+    setSelectedSeries: React.Dispatch<React.SetStateAction<number | undefined>>;
+  };
+  formActions: {
+    register: UseFormRegister<AddSeriesFormType>;
+    setValue: UseFormSetValue<AddSeriesFormType>;
+    handleSubmit: UseFormHandleSubmit<AddSeriesFormType>;
+  };
+}
+
+function useSeries(thumbnailPath: string | undefined): UseSeriesReturnType {
   const [selectedSeries, setSelectedSeries] = useState<number>();
   const { register, setValue, handleSubmit, reset } =
     useForm<AddSeriesFormType>();
   const [darkMode] = useDarkMode();
-  const { data: seriesData, mutate } = useSWR<SeiresReturnType>('/api/series');
-  const [addSeriesAPI, { data, error }] =
-    useMutation<ResponseType>('/api/write/series');
+  const { data: seriesData, mutate } =
+    useSWR<SeiresResponseType>('/api/series');
+  const [addSeriesAPI, { data, error }] = useMutation<ResponseType>(
+    '/api/write/series',
+    'POST',
+  );
 
   const addSeries = (formData: any) => {
-    addSeriesAPI(formData);
+    const body = {
+      ...formData,
+      ...(thumbnailPath && { thumbnailPath }),
+    };
+    addSeriesAPI(body);
   };
 
   const onError = useCallback(async () => {

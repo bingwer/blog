@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 
-type UseTagReturnType = [
+export type UseTagReturnType = [
   string[],
   {
     addTag: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    setTags: React.Dispatch<React.SetStateAction<string[]>>;
     deleteTagFromEnd: (
       e: React.KeyboardEvent<HTMLInputElement>,
       inputElement: HTMLInputElement | null,
@@ -47,7 +48,7 @@ function useTags(): UseTagReturnType {
     setTags(prev => prev.filter(tagName => tagName !== tag));
   };
 
-  return [tags, { addTag, deleteTagFromEnd, deleteTagByClick }];
+  return [tags, { addTag, setTags, deleteTagFromEnd, deleteTagByClick }];
 }
 
 export default useTags;

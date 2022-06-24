@@ -5,12 +5,6 @@ import PostSaveContainer from '@containers/write/PostSaveContainer';
 import PostWriteContainer from '@containers/write/PostWriteContainer';
 import useWritePost from '@hooks/write/useWritePost';
 
-export interface WriteFormType {
-  title: string;
-  description: string;
-  url: string;
-}
-
 function Write() {
   useUser();
   const editorRef = useRef<Editor>(null);
@@ -19,8 +13,11 @@ function Write() {
     upload,
     tag,
     formAction,
+    series,
     thumbnail: { uploadImage, thumbnailPath, deleteThumbnail },
+    isPrivate,
   } = useWritePost(editorRef);
+  const { uploadTempPost } = upload;
 
   return (
     <>
@@ -30,14 +27,17 @@ function Write() {
         uploadImage={uploadImage}
         tag={tag}
         formAction={formAction}
+        uploadTempPost={uploadTempPost}
       />
       <PostSaveContainer
         nextStep={nextStep}
         setNextStep={setNextStep}
         editorRef={editorRef as React.MutableRefObject<Editor>}
         thumbnail={{ uploadImage, thumbnailPath, deleteThumbnail }}
+        series={series}
         formAction={formAction}
         upload={upload}
+        isPrivate={isPrivate}
       />
     </>
   );

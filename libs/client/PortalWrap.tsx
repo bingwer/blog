@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface PortalWrapProps {
@@ -18,7 +18,7 @@ function PortalWrap({ children, wrapperId }: PortalWrapProps) {
     null,
   );
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     let portalElement = document.getElementById(wrapperId);
     let isWrapperCreated = false;
 

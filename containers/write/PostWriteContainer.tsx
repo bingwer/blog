@@ -1,13 +1,14 @@
+/* eslint-disable react/require-default-props */
 import { ToastEditorProps } from '@components/write/ToastEditor';
 import useDarkMode from '@hooks/useDarkMode';
 import useWindowWidth from '@hooks/useWindowWidth';
+import { UseTagReturnType } from '@hooks/write/useTags';
+import { WriteFormActionType, WriteFormType } from '@hooks/write/useWritePost';
 import { cls } from '@libs/util';
 import { Editor } from '@toast-ui/react-editor';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { WriteFormType } from 'pages/write';
 import React, { forwardRef, useRef } from 'react';
-import { UseFormRegister } from 'react-hook-form';
 import WriteTag from '../../components/write/WriteTag';
 
 const PortalWrap = dynamic(() => import('@libs/client/PortalWrap'), {
@@ -33,35 +34,25 @@ interface PostWriteContainerProps {
   editorRef: React.MutableRefObject<Editor>;
   uploadImage: (
     file: File,
+    type: 'image' | 'thumbnail',
     callback?: ((url: string, flag: string) => void) | undefined,
   ) => Promise<void>;
-  tag: {
-    tags: string[];
-    actions: {
-      addTag: (e: React.ChangeEvent<HTMLInputElement>) => void;
-      deleteTagFromEnd: (
-        e: React.KeyboardEvent<HTMLInputElement>,
-        inputElement: HTMLInputElement | null,
-      ) => void;
-      deleteTagByClick: (tagId: string) => void;
-    };
-  };
-  formAction: {
-    register: UseFormRegister<WriteFormType>;
-  };
+  tag: UseTagReturnType;
+  formAction: WriteFormActionType;
   setNextStep: React.Dispatch<React.SetStateAction<boolean>>;
+  content?: string;
+  uploadTempPost: (FormData: WriteFormType) => Promise<void>;
 }
 
 function PostWriteContainer(props: PostWriteContainerProps) {
   const {
     editorRef,
     uploadImage,
-    formAction: { register },
-    tag: {
-      tags,
-      actions: { addTag, deleteTagByClick, deleteTagFromEnd },
-    },
+    formAction: { register, handleSubmit },
+    tag: [tags, { addTag, deleteTagByClick, deleteTagFromEnd }],
     setNextStep,
+    content,
+    uploadTempPost,
   } = props;
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [darkMode] = useDarkMode();
@@ -117,6 +108,7 @@ function PostWriteContainer(props: PostWriteContainerProps) {
             theme={darkMode ? 'dark' : 'light'}
             autofocus={false}
             ref={editorRef}
+            content={content}
           />
           <div className="flex h-16 w-full items-center justify-between">
             <button type="button" onClick={() => router.back()}>
@@ -139,7 +131,9 @@ function PostWriteContainer(props: PostWriteContainerProps) {
               </span>
             </button>
             <div className="space-x-4">
-              <button type="button">임시저장</button>
+              <button type="button" onClick={handleSubmit(uploadTempPost)}>
+                임시저장
+              </button>
               <button
                 type="button"
                 className="rounded-lg bg-l-mainColor py-2 px-3 dark:bg-d-mainColor"
