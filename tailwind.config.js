@@ -20,21 +20,6 @@ module.exports = {
       },
       keyframes: {
         darkModeChangeKeyFrame: {
-          /*           '0%': {
-            'clip-path': 'polygon(0 0, 100% 0%, 100% 10%, 0 10%)',
-          },
-          '25%': {
-            'clip-path': 'polygon(0 0, 100% 0%, 100% 33%, 0 10%)',
-          },
-          '50%': {
-            'clip-path': 'polygon(0 0, 100% 0%, 100% 33%, 0 66%)',
-          },
-          '75%': {
-            'clip-path': 'polygon(0 0, 100% 0%, 100% 100%, 0 66%)',
-          },
-          '100%': {
-            'clip-path': 'polygon(0 0, 100% 0%, 100% 100%, 0 100%)',
-          }, */
           '0%': {
             'clip-path': 'circle(30% at -25% -25%)',
           },

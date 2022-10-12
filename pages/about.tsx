@@ -6,7 +6,7 @@ function Home() {
   return (
     <SubLayout>
       <div className="showcase-area">
-        <div className="justiy-center z-10 my-0 mx-auto grid w-full max-w-4xl grid-cols-1 items-center gap-8 px-12 py-10 lg:grid-cols-2 lg:gap-0 lg:py-0">
+        <div className="z-10 my-0 mx-auto grid w-full max-w-4xl grid-cols-1 items-center justify-center gap-8 px-12 py-10 lg:grid-cols-2 lg:gap-0 lg:py-0">
           <div className="left">
             <div className="big-title text-l-darkOne dark:text-d-darkOne space-y-6 text-3xl font-bold capitalize leading-6">
               <h1>Test Message</h1>

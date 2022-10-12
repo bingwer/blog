@@ -7,7 +7,7 @@ type useDarkModeProps = [boolean, (flag: boolean) => void];
 
 export default function useDarkMode(): useDarkModeProps {
   const dispatch = useDispatch();
-  const isDarkMode = useSelector(state => state.commmon.darkMode);
+  const isDarkMode = useSelector(state => state.common.darkMode);
 
   const checkStorage = useCallback(() => {
     const savedTheme = localStorage.getItem('polarScriptTheme');

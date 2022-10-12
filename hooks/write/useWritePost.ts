@@ -231,6 +231,7 @@ function useWritePost(
       ...(thumbnailPath && { thumbnailPath }),
       tags: tags.join(','),
     };
+
     if (post && postType === 'temp') {
       updateTempPostAPI(body);
     } else if (post && postType !== 'temp') {

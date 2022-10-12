@@ -108,7 +108,7 @@ function PostSaveContainer(props: PostSaveContainerProps) {
                     />
                     <label
                       htmlFor="thumbnailChange"
-                      className="rounded-mdtext-center absolute -top-11 right-10 flex h-9 cursor-pointer items-center justify-center text-sm"
+                      className="absolute -top-11 right-10 flex h-9 cursor-pointer items-center justify-center rounded-md text-center text-sm"
                     >
                       수정
                     </label>

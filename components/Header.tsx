@@ -13,7 +13,7 @@ interface HeaderProps {
 }
 
 function Header({ isAnim }: HeaderProps) {
-  const isScrollUp = useSelector(state => state.commmon.scrollUp);
+  const isScrollUp = useSelector(state => state.common.scrollUp);
   const scrollPosition = useScrollPosition(500);
   const [darkMode, setDarkMode] = useDarkMode();
   const { user } = useUser();

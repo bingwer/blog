@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface PortalWrapProps {
@@ -6,7 +6,7 @@ interface PortalWrapProps {
   wrapperId: string;
 }
 
-function createPortalWrapperAndApeend(wrapperId: string) {
+function createPortalWrapperAndAppend(wrapperId: string) {
   const wrapperElement = document.createElement('div');
   wrapperElement.setAttribute('id', wrapperId);
   document.body.appendChild(wrapperElement);
@@ -24,7 +24,7 @@ function PortalWrap({ children, wrapperId }: PortalWrapProps) {
 
     if (!portalElement) {
       isWrapperCreated = true;
-      portalElement = createPortalWrapperAndApeend(wrapperId);
+      portalElement = createPortalWrapperAndAppend(wrapperId);
     }
 
     setWrapperElement(portalElement);
@@ -37,9 +37,12 @@ function PortalWrap({ children, wrapperId }: PortalWrapProps) {
     };
   }, [wrapperId]);
 
-  if (wrapperElement === null) return null;
+  const portal = useCallback(() => {
+    if (wrapperElement === null) return null;
+    return createPortal(children, wrapperElement);
+  }, [children, wrapperElement]);
 
-  return createPortal(children, wrapperElement);
+  return portal();
 }
 
 export default PortalWrap;

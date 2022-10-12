@@ -12,7 +12,7 @@ interface LayoutProps {
 
 const hiddenStyle = {
   'z-index': '-20',
-  dislay: 'hidden',
+  display: 'hidden',
 };
 
 const visibleStyle = {
@@ -31,7 +31,7 @@ function Layout({ children }: LayoutProps) {
   const [darkMode] = useDarkMode();
 
   const changeLayout = useCallback(() => {
-    const drakModeContainer = darkWrap.current;
+    const darkModeContainer = darkWrap.current;
     const lightModeContainer = lightWrap.current;
 
     if (isAnim || !firstLoaded) {
@@ -40,19 +40,19 @@ function Layout({ children }: LayoutProps) {
     }
 
     if (
-      !(drakModeContainer instanceof HTMLDivElement) ||
+      !(darkModeContainer instanceof HTMLDivElement) ||
       !(lightModeContainer instanceof HTMLDivElement)
     )
       return;
 
     if (darkMode) {
-      drakModeContainer.classList.add('animate-darkModeChange');
+      darkModeContainer.classList.add('animate-darkModeChange');
       lightModeContainer.style.zIndex = hiddenStyle['z-index'];
-      drakModeContainer.style.zIndex = visibleStyle['z-index'];
-      drakModeContainer.style.display = visibleStyle.display;
+      darkModeContainer.style.zIndex = visibleStyle['z-index'];
+      darkModeContainer.style.display = visibleStyle.display;
     } else {
       lightModeContainer.classList.add('animate-darkModeChange');
-      drakModeContainer.style.zIndex = hiddenStyle['z-index'];
+      darkModeContainer.style.zIndex = hiddenStyle['z-index'];
       lightModeContainer.style.zIndex = visibleStyle['z-index'];
       lightModeContainer.style.display = visibleStyle.display;
     }
