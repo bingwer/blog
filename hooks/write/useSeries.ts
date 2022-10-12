@@ -2,7 +2,7 @@ import useDarkMode from '@hooks/useDarkMode';
 import useMutation from '@hooks/useMutation';
 import { ResponseType } from '@libs/server/withHandler';
 import { makeAlert } from '@libs/util';
-import { CustomSeries, SeiresResponseType } from 'pages/api/series';
+import { CustomSeries, SeriesResponseType } from 'pages/api/series';
 import { useCallback, useEffect, useState } from 'react';
 import {
   useForm,
@@ -37,7 +37,7 @@ function useSeries(thumbnailPath: string | undefined): UseSeriesReturnType {
     useForm<AddSeriesFormType>();
   const [darkMode] = useDarkMode();
   const { data: seriesData, mutate } =
-    useSWR<SeiresResponseType>('/api/series');
+    useSWR<SeriesResponseType>('/api/series');
   const [addSeriesAPI, { data, error }] = useMutation<ResponseType>(
     '/api/write/series',
     'POST',

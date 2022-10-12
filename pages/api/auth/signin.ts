@@ -21,12 +21,12 @@ async function handler(
 
   try {
     const salt = bcrypt.genSaltSync(10);
-    const encrypedPassword = bcrypt.hashSync(password, salt);
+    const encryptedPassword = bcrypt.hashSync(password, salt);
 
     await prisma.user.create({
       data: {
         userId,
-        password: encrypedPassword,
+        password: encryptedPassword,
       },
     });
 

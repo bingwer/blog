@@ -10,7 +10,7 @@ import logger from 'redux-logger';
 import common from '@store/common';
 
 const rootReducer = combineReducers({
-  commmon: common.reducer,
+  common: common.reducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
@@ -36,7 +36,7 @@ export const useSelector: TypedUseSelectorHook<RootState> = useReduxSelector;
 const initStore: MakeStore<Store> = () => {
   const store = configureStore({
     reducer,
-    middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
+    //middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
     devTools: true,
   });
   initialRootState = store.getState();
