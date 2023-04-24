@@ -1,3 +1,4 @@
+// eslint-disable-next-line max-classes-per-file
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   BoxBufferGeometry,
